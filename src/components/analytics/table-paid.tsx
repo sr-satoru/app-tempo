@@ -50,6 +50,11 @@ export const TablePaid: React.FC<TablePaidProps> = ({
     onSaveEntry(updated)
   }
 
+  // Previne alteração acidental de valores ao rolar o scroll do mouse
+  const handlePreventWheelChange = (e: React.WheelEvent<HTMLInputElement>) => {
+    e.currentTarget.blur()
+  }
+
   return (
     <div className="rounded-xl border border-slate-200 dark:border-[#1E2025] bg-white dark:bg-[#121316] shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
@@ -130,7 +135,7 @@ export const TablePaid: React.FC<TablePaidProps> = ({
                     </div>
                   </td>
 
-                  {/* Horas - 100% editável */}
+                  {/* Horas - sem scroll acidental */}
                   <td className="py-2 px-2">
                     <input
                       type="number"
@@ -138,6 +143,7 @@ export const TablePaid: React.FC<TablePaidProps> = ({
                       min="0"
                       placeholder="0.0h"
                       value={entry.horasTrabalhadas || ''}
+                      onWheel={handlePreventWheelChange}
                       onChange={(e) =>
                         handleFieldChange(day.dateString, 'horasTrabalhadas', e.target.value)
                       }
@@ -145,7 +151,7 @@ export const TablePaid: React.FC<TablePaidProps> = ({
                     />
                   </td>
 
-                  {/* Faturamento - 100% editável */}
+                  {/* Faturamento - sem scroll acidental */}
                   <td className="py-2 px-2">
                     <input
                       type="number"
@@ -153,6 +159,7 @@ export const TablePaid: React.FC<TablePaidProps> = ({
                       min="0"
                       placeholder="R$ 0,00"
                       value={entry.faturamento || ''}
+                      onWheel={handlePreventWheelChange}
                       onChange={(e) =>
                         handleFieldChange(day.dateString, 'faturamento', e.target.value)
                       }
@@ -160,7 +167,7 @@ export const TablePaid: React.FC<TablePaidProps> = ({
                     />
                   </td>
 
-                  {/* Gasto em Ads - 100% editável */}
+                  {/* Gasto em Ads - sem scroll acidental */}
                   <td className="py-2 px-2">
                     <input
                       type="number"
@@ -168,6 +175,7 @@ export const TablePaid: React.FC<TablePaidProps> = ({
                       min="0"
                       placeholder="R$ 0,00"
                       value={entry.gastoAds || ''}
+                      onWheel={handlePreventWheelChange}
                       onChange={(e) =>
                         handleFieldChange(day.dateString, 'gastoAds', e.target.value)
                       }
@@ -175,7 +183,7 @@ export const TablePaid: React.FC<TablePaidProps> = ({
                     />
                   </td>
 
-                  {/* Outros Custos - 100% editável */}
+                  {/* Outros Custos - sem scroll acidental */}
                   <td className="py-2 px-2">
                     <input
                       type="number"
@@ -183,6 +191,7 @@ export const TablePaid: React.FC<TablePaidProps> = ({
                       min="0"
                       placeholder="R$ 0,00"
                       value={entry.outrosGastos || ''}
+                      onWheel={handlePreventWheelChange}
                       onChange={(e) =>
                         handleFieldChange(day.dateString, 'outrosGastos', e.target.value)
                       }
@@ -190,7 +199,7 @@ export const TablePaid: React.FC<TablePaidProps> = ({
                     />
                   </td>
 
-                  {/* Notas - 100% editável */}
+                  {/* Notas */}
                   <td className="py-2 px-2">
                     <input
                       type="text"

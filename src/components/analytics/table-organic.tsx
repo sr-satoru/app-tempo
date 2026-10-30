@@ -54,6 +54,11 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
     onSaveEntry(updated)
   }
 
+  // Previne alteração acidental de valores numéricos via scroll do mouse
+  const handlePreventWheelChange = (e: React.WheelEvent<HTMLInputElement>) => {
+    e.currentTarget.blur()
+  }
+
   return (
     <div className="rounded-xl border border-slate-200 dark:border-[#1E2025] bg-white dark:bg-[#121316] shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
@@ -135,7 +140,7 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                     </div>
                   </td>
 
-                  {/* Horas - 100% editável para qualquer dia */}
+                  {/* Horas - sem scroll acidental */}
                   <td className="py-2 px-2">
                     <input
                       type="number"
@@ -143,6 +148,7 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                       min="0"
                       placeholder="0.0h"
                       value={entry.horasTrabalhadas || ''}
+                      onWheel={handlePreventWheelChange}
                       onChange={(e) =>
                         handleFieldChange(day.dateString, 'horasTrabalhadas', e.target.value)
                       }
@@ -150,7 +156,7 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                     />
                   </td>
 
-                  {/* Faturamento - 100% editável para qualquer dia */}
+                  {/* Faturamento - sem scroll acidental */}
                   <td className="py-2 px-2">
                     <input
                       type="number"
@@ -158,6 +164,7 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                       min="0"
                       placeholder="R$ 0,00"
                       value={entry.faturamento || ''}
+                      onWheel={handlePreventWheelChange}
                       onChange={(e) =>
                         handleFieldChange(day.dateString, 'faturamento', e.target.value)
                       }
@@ -165,7 +172,7 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                     />
                   </td>
 
-                  {/* Canal Social - 100% editável para qualquer dia */}
+                  {/* Canal Social */}
                   <td className="py-2 px-2">
                     <select
                       value={entry.canalRedeSocial || 'TikTok'}
@@ -182,7 +189,7 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                     </select>
                   </td>
 
-                  {/* Custo Reposição Contas - 100% editável */}
+                  {/* Custo Reposição Contas - sem scroll acidental */}
                   <td className="py-2 px-2">
                     <input
                       type="number"
@@ -190,6 +197,7 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                       min="0"
                       placeholder="R$ 0,00"
                       value={entry.custoReposicaoContas || ''}
+                      onWheel={handlePreventWheelChange}
                       onChange={(e) =>
                         handleFieldChange(
                           day.dateString,
@@ -201,7 +209,7 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                     />
                   </td>
 
-                  {/* Qtd Contas Repostas - 100% editável */}
+                  {/* Qtd Contas Repostas - sem scroll acidental */}
                   <td className="py-2 px-2">
                     <input
                       type="number"
@@ -209,6 +217,7 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                       min="0"
                       placeholder="0"
                       value={entry.qtdContasRepostas || ''}
+                      onWheel={handlePreventWheelChange}
                       onChange={(e) =>
                         handleFieldChange(day.dateString, 'qtdContasRepostas', e.target.value)
                       }
@@ -216,7 +225,7 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                     />
                   </td>
 
-                  {/* Outros Custos Contingência - 100% editável */}
+                  {/* Outros Custos Contingência - sem scroll acidental */}
                   <td className="py-2 px-2">
                     <input
                       type="number"
@@ -224,6 +233,7 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                       min="0"
                       placeholder="R$ 0,00"
                       value={entry.outrosCustosContingencia || ''}
+                      onWheel={handlePreventWheelChange}
                       onChange={(e) =>
                         handleFieldChange(
                           day.dateString,
@@ -235,7 +245,7 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                     />
                   </td>
 
-                  {/* Notas - 100% editável */}
+                  {/* Notas */}
                   <td className="py-2 px-2">
                     <input
                       type="text"
@@ -248,7 +258,7 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                     />
                   </td>
 
-                  {/* --- Resultados Calculados (Atualizam na hora) --- */}
+                  {/* --- Resultados Calculados --- */}
 
                   {/* Total Contingência */}
                   <td className="py-3 px-4 text-right font-mono text-slate-500 dark:text-slate-400 border-l border-slate-200 dark:border-[#1E2025]">
