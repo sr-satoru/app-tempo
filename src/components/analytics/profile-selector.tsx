@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -65,34 +66,39 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 py-2">
       <div className="flex items-center gap-3">
-        <label htmlFor="profile-select" className="text-xs font-medium text-slate-500 dark:text-slate-400">
+        <label htmlFor="profile-select" className="text-xs font-medium text-slate-500 dark:text-slate-400 select-none">
           Perfil / BM:
         </label>
 
-        <select
-          id="profile-select"
-          value={selectedProfileId}
-          onChange={(e) => onSelectProfile(e.target.value)}
-          className="h-9 px-3 rounded-lg border border-slate-200 dark:border-[#1E2025] bg-white dark:bg-[#121316] text-xs font-semibold text-slate-900 dark:text-white cursor-pointer min-w-[220px] sm:min-w-[260px] focus:outline-none focus:border-[#7C3AED]"
-        >
-          <option value="all">Todos os Perfis (Geral · {profiles.length})</option>
-          {profiles.map((p) => (
-            <option key={p.id} value={p.id} className="bg-white dark:bg-[#121316]">
-              {p.nome}
-            </option>
-          ))}
-        </select>
-
-        {selectedProfileId !== 'all' && profiles.length > 1 && (
-          <button
-            type="button"
-            onClick={handleDeleteCurrent}
-            className="text-xs text-rose-500 hover:text-rose-600 hover:underline px-2 transition-colors"
+        <div className="flex items-center gap-1.5">
+          <select
+            id="profile-select"
+            value={selectedProfileId}
+            onChange={(e) => onSelectProfile(e.target.value)}
+            className="h-9 px-3 rounded-lg border border-slate-200 dark:border-[#1E2025] bg-white dark:bg-[#121316] text-xs font-semibold text-slate-900 dark:text-white cursor-pointer min-w-[200px] sm:min-w-[250px] focus:outline-none focus:border-[#7C3AED] transition-colors"
           >
-            Excluir perfil selecionado
-          </button>
-        )}
+            <option value="all">Todos os Perfis (Geral · {profiles.length})</option>
+            {profiles.map((p) => (
+              <option key={p.id} value={p.id} className="bg-white dark:bg-[#121316]">
+                {p.nome}
+              </option>
+            ))}
+          </select>
+
+          {selectedProfileId && selectedProfileId !== 'all' && (
+            <button
+              type="button"
+              onClick={handleDeleteCurrent}
+              title={`Excluir perfil "${profiles.find((p) => p.id === selectedProfileId)?.nome || ''}"`}
+              className="h-9 w-9 flex items-center justify-center rounded-lg border border-slate-200 dark:border-[#1E2025] bg-white dark:bg-[#121316] text-slate-400 hover:text-rose-600 hover:border-rose-300 dark:hover:border-rose-900/60 hover:bg-rose-50/50 dark:hover:bg-rose-950/20 transition-all cursor-pointer shadow-xs"
+              aria-label="Excluir perfil selecionado"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </div>
+
 
       <Button
         variant="outline"

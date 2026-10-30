@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -64,36 +65,41 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 py-2">
-      {/* Seleção via <select> nativo do próprio HTML - simples, limpo e direto */}
+      {/* Seleção via <select> nativo com botão de lixeira acoplado */}
       <div className="flex items-center gap-3">
-        <label htmlFor="model-select" className="text-xs font-medium text-slate-500 dark:text-slate-400">
+        <label htmlFor="model-select" className="text-xs font-medium text-slate-500 dark:text-slate-400 select-none">
           Modelo OFM:
         </label>
 
-        <select
-          id="model-select"
-          value={selectedModelId}
-          onChange={(e) => onSelectModel(e.target.value)}
-          className="h-9 px-3 rounded-lg border border-slate-200 dark:border-[#1E2025] bg-white dark:bg-[#121316] text-xs font-semibold text-slate-900 dark:text-white cursor-pointer min-w-[220px] sm:min-w-[260px] focus:outline-none focus:border-[#7C3AED]"
-        >
-          <option value="all">Todas as Modelos (Geral · {models.length})</option>
-          {models.map((m) => (
-            <option key={m.id} value={m.id} className="bg-white dark:bg-[#121316]">
-              {m.nome}
-            </option>
-          ))}
-        </select>
-
-        {selectedModelId !== 'all' && models.length > 1 && (
-          <button
-            type="button"
-            onClick={handleDeleteCurrent}
-            className="text-xs text-rose-500 hover:text-rose-600 hover:underline px-2 transition-colors"
+        <div className="flex items-center gap-1.5">
+          <select
+            id="model-select"
+            value={selectedModelId}
+            onChange={(e) => onSelectModel(e.target.value)}
+            className="h-9 px-3 rounded-lg border border-slate-200 dark:border-[#1E2025] bg-white dark:bg-[#121316] text-xs font-semibold text-slate-900 dark:text-white cursor-pointer min-w-[200px] sm:min-w-[250px] focus:outline-none focus:border-[#7C3AED] transition-colors"
           >
-            Excluir modelo selecionada
-          </button>
-        )}
+            <option value="all">Todas as Modelos (Geral · {models.length})</option>
+            {models.map((m) => (
+              <option key={m.id} value={m.id} className="bg-white dark:bg-[#121316]">
+                {m.nome}
+              </option>
+            ))}
+          </select>
+
+          {selectedModelId && selectedModelId !== 'all' && (
+            <button
+              type="button"
+              onClick={handleDeleteCurrent}
+              title={`Excluir modelo "${models.find((m) => m.id === selectedModelId)?.nome || ''}"`}
+              className="h-9 w-9 flex items-center justify-center rounded-lg border border-slate-200 dark:border-[#1E2025] bg-white dark:bg-[#121316] text-slate-400 hover:text-rose-600 hover:border-rose-300 dark:hover:border-rose-900/60 hover:bg-rose-50/50 dark:hover:bg-rose-950/20 transition-all cursor-pointer shadow-xs"
+              aria-label="Excluir modelo selecionada"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </div>
+
 
       {/* Botão de Adicionar Nova Modelo */}
       <Button

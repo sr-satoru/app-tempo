@@ -96,7 +96,10 @@ export const OrganicFinancialOverview: React.FC<OrganicFinancialOverviewProps> =
               Faturamento líquido descontando taxas de checkout, contingência e custos fixos
             </p>
           </div>
-          <span className="text-xs font-mono text-slate-400">{modelName}</span>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium font-mono bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            {modelName}
+          </span>
         </div>
 
         {/* Cards de Métricas em Linha Limpa */}
