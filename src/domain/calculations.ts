@@ -5,6 +5,12 @@ import type {
   PaidDailyEntry,
   PeriodSummary,
 } from '@/types/analytics'
+import type {
+  GatewayConfig,
+  FixedCostItem,
+  GatewayBreakdown,
+  FinancialConsolidation,
+} from '@/types/finance'
 
 /**
  * Cálculos Diários para Tráfego Orgânico (OFM / Contingência)
@@ -130,3 +136,120 @@ export function summarizePaidPeriod(entries: PaidDailyEntry[]): PeriodSummary {
     roiGeralPercent,
   }
 }
+
+/**
+ * Cálculo das Deduções e Retenções de Gateway de Pagamento
+ */
+export function calculateGatewayBreakdown(
+  faturamento: number,
+  config: GatewayConfig
+): GatewayBreakdown {
+  if (!config.enabled || faturamento <= 0) {
+    return {
+      enabled: config.enabled,
+      percentCost: 0,
+      fixedTransactionCost: 0,
+      fixedWithdrawalCost: 0,
+      totalRetido: 0,
+      effectivePercentage: 0,
+      estimatedTransactionsCount: 0,
+    }
+  }
+
+  let estimatedTransactionsCount = 0
+  if (config.estimatedTransactions && config.estimatedTransactions > 0) {
+    estimatedTransactionsCount = config.estimatedTransactions
+  } else if (config.averageTicket > 0) {
+    estimatedTransactionsCount = Math.max(1, Math.round(faturamento / config.averageTicket))
+  } else {
+    estimatedTransactionsCount = 1
+  }
+
+  let percentCost = 0
+  let fixedTransactionCost = 0
+
+  if (config.feeType === 'percentage' || config.feeType === 'mixed') {
+    percentCost = (faturamento * (config.percentageFee || 0)) / 100
+  }
+
+  if (config.feeType === 'fixed' || config.feeType === 'mixed') {
+    fixedTransactionCost = estimatedTransactionsCount * (config.fixedFeePerTransaction || 0)
+  }
+
+  const fixedWithdrawalCost = Number(config.withdrawalOrMonthlyFee) || 0
+  const totalRetido = percentCost + fixedTransactionCost + fixedWithdrawalCost
+  const effectivePercentage = faturamento > 0 ? (totalRetido / faturamento) * 100 : 0
+
+  return {
+    enabled: config.enabled,
+    percentCost,
+    fixedTransactionCost,
+    fixedWithdrawalCost,
+    totalRetido,
+    effectivePercentage,
+    estimatedTransactionsCount,
+  }
+}
+
+/**
+ * Consolidação Financeira Geral com Lucro Líquido Real, Gateway e Custos Fixos/Iniciais
+ */
+export function consolidateOrganicFinances(
+  entries: OrganicDailyEntry[],
+  gatewayConfig: GatewayConfig,
+  fixedCosts: FixedCostItem[]
+): FinancialConsolidation {
+  const totalFaturamento = entries.reduce((acc, e) => acc + (Number(e.faturamento) || 0), 0)
+  const totalHoras = entries.reduce((acc, e) => acc + (Number(e.horasTrabalhadas) || 0), 0)
+  const totalReposicao = entries.reduce((acc, e) => acc + (Number(e.custoReposicaoContas) || 0), 0)
+  const totalOutros = entries.reduce((acc, e) => acc + (Number(e.outrosCustosContingencia) || 0), 0)
+  const totalContingenciaDiaria = totalReposicao + totalOutros
+  const totalContasRepostas = entries.reduce((acc, e) => acc + (Number(e.qtdContasRepostas) || 0), 0)
+  const custoMedioContaDiaria = totalContasRepostas > 0 ? totalReposicao / totalContasRepostas : 0
+
+  // Dedução de Gateway
+  const gatewayBreakdown = calculateGatewayBreakdown(totalFaturamento, gatewayConfig)
+
+  // Custos Iniciais & Custos Fixos
+  const activeCosts = (fixedCosts || []).filter((c) => c.ativo)
+
+  let custoInicialTotal = 0
+  let custoInicialAplicado = 0
+  let custoFixoMensalTotal = 0
+
+  for (const item of activeCosts) {
+    const val = Number(item.valor) || 0
+    if (item.tipo === 'inicial') {
+      custoInicialTotal += val
+      const meses = Math.max(1, item.amortizarMeses || 1)
+      custoInicialAplicado += val / meses
+    } else {
+      custoFixoMensalTotal += val
+    }
+  }
+
+  const totalCustosExtras = custoInicialAplicado + custoFixoMensalTotal
+  const totalDeducoes = gatewayBreakdown.totalRetido + totalContingenciaDiaria + totalCustosExtras
+  const lucroLiquidoReal = totalFaturamento - totalDeducoes
+  const valorHoraReal = totalHoras > 0 ? lucroLiquidoReal / totalHoras : 0
+  const margemLiquidaReal = totalFaturamento > 0 ? (lucroLiquidoReal / totalFaturamento) * 100 : 0
+  const roiRealPercent = totalDeducoes > 0 ? (lucroLiquidoReal / totalDeducoes) * 100 : 0
+
+  return {
+    faturamentoBruto: totalFaturamento,
+    totalHoras,
+    totalContingenciaDiaria,
+    totalContasRepostas,
+    custoMedioContaDiaria,
+    gatewayBreakdown,
+    custoInicialAplicado,
+    custoInicialTotal,
+    custoFixoMensalTotal,
+    totalCustosExtras,
+    lucroLiquidoReal,
+    valorHoraReal,
+    margemLiquidaReal,
+    roiRealPercent,
+  }
+}
+

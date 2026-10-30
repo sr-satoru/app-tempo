@@ -13,6 +13,17 @@ interface DashboardEfficiencyFunnelProps {
   horasPago: number
 }
 
+interface FunnelBar {
+  label: string
+  sublabel?: string
+  value: number
+  pct: number
+  color: string
+  bgColor: string
+  borderColor: string
+  textColor: string
+}
+
 export const DashboardEfficiencyFunnel: React.FC<DashboardEfficiencyFunnelProps> = ({
   totalFaturamento,
   totalGastos,
@@ -24,176 +35,182 @@ export const DashboardEfficiencyFunnel: React.FC<DashboardEfficiencyFunnelProps>
   horasOrganico,
   horasPago,
 }) => {
-  const faturamentoBase = Math.max(totalFaturamento, 1)
+  const base = Math.max(totalFaturamento, 1)
   const margemLucro = totalFaturamento > 0 ? (totalLucro / totalFaturamento) * 100 : 0
-  const pctAds = totalFaturamento > 0 ? (gastoAds / totalFaturamento) * 100 : 0
-  const pctContingencia = totalFaturamento > 0 ? (gastoContingencia / totalFaturamento) * 100 : 0
+  const pctAds = (gastoAds / base) * 100
+  const pctConting = (gastoContingencia / base) * 100
+
+  const funnelBars: FunnelBar[] = [
+    {
+      label: 'Faturamento Bruto',
+      sublabel: '100% — base de cálculo',
+      value: totalFaturamento,
+      pct: 100,
+      color: '#6366F1',
+      bgColor: 'rgba(99,102,241,0.08)',
+      borderColor: 'rgba(99,102,241,0.25)',
+      textColor: '#6366F1',
+    },
+    {
+      label: 'Lucro Líquido Retido',
+      sublabel: `${margemLucro.toFixed(1)}% de margem`,
+      value: totalLucro,
+      pct: Math.max(0, Math.min(100, margemLucro)),
+      color: '#10B981',
+      bgColor: 'rgba(16,185,129,0.07)',
+      borderColor: 'rgba(16,185,129,0.2)',
+      textColor: '#10B981',
+    },
+    {
+      label: 'Gastos em Anúncios',
+      sublabel: `${pctAds.toFixed(1)}% do faturamento`,
+      value: gastoAds,
+      pct: Math.min(100, pctAds),
+      color: '#F43F5E',
+      bgColor: 'rgba(244,63,94,0.06)',
+      borderColor: 'rgba(244,63,94,0.18)',
+      textColor: '#F43F5E',
+    },
+    {
+      label: 'Reposição de Contas',
+      sublabel: `${pctConting.toFixed(1)}% do faturamento`,
+      value: gastoContingencia,
+      pct: Math.min(100, pctConting),
+      color: '#F59E0B',
+      bgColor: 'rgba(245,158,11,0.07)',
+      borderColor: 'rgba(245,158,11,0.2)',
+      textColor: '#F59E0B',
+    },
+  ]
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-      {/* 1. Funil de Retenção & Custos (Estilo Conversion Funnel) */}
-      <div className="rounded-2xl border border-slate-200/90 dark:border-[#1E2025] bg-white dark:bg-[#121316] p-5 shadow-sm flex flex-col justify-between">
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">
-              Funil de Eficiência Financeira
+      {/* Left: Conversion funnel — exactly like the reference image */}
+      <div className="rounded-2xl border border-slate-200 dark:border-[#1E2025] bg-white dark:bg-[#0E0F12] p-5 shadow-sm flex flex-col">
+        <div className="mb-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+              Funil de Eficiência
             </h3>
-            <span className="text-xs text-slate-400 font-mono">Retenção de caixa</span>
+            <span className="text-[10px] text-slate-400 font-mono">Retenção de caixa</span>
           </div>
-          <p className="text-xs text-slate-400 mb-4">
-            Do faturamento bruto até o lucro líquido real retido
+          <p className="text-[11px] text-slate-400 mt-0.5">
+            Do faturamento bruto até o lucro líquido real
           </p>
-
-          {/* Barras do Funil em Camadas */}
-          <div className="space-y-3">
-            {/* Topo: Faturamento Bruto */}
-            <div className="rounded-xl p-3 bg-purple-500/10 border border-purple-500/20">
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span className="font-semibold text-slate-900 dark:text-white">
-                  1. Faturamento Total
-                </span>
-                <span className="font-mono font-bold text-[#7C3AED] dark:text-[#C4B5FD]">
-                  {formatCurrency(totalFaturamento)} (100%)
-                </span>
-              </div>
-              <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-[#1E2028] overflow-hidden">
-                <div className="h-full rounded-full bg-[#7C3AED] w-full" />
-              </div>
-            </div>
-
-            {/* Meio: Lucro Líquido Real */}
-            <div className="rounded-xl p-3 bg-emerald-500/10 border border-emerald-500/20">
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span className="font-semibold text-slate-900 dark:text-white">
-                  2. Lucro Líquido Retido
-                </span>
-                <span className="font-mono font-bold text-emerald-500">
-                  {formatCurrency(totalLucro)} ({margemLucro.toFixed(0)}%)
-                </span>
-              </div>
-              <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-[#1E2028] overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-emerald-500 transition-all duration-500"
-                  style={{ width: `${Math.max(0, Math.min(100, margemLucro))}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Custos de Tráfego Pago */}
-            <div className="rounded-xl p-3 bg-slate-100 dark:bg-[#161820] border border-slate-200 dark:border-[#22242D]">
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span className="font-medium text-slate-700 dark:text-slate-300">
-                  3. Gastos em Anúncios (Ads)
-                </span>
-                <span className="font-mono font-semibold text-rose-500">
-                  {formatCurrency(gastoAds)} ({pctAds.toFixed(0)}%)
-                </span>
-              </div>
-              <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-[#1E2028] overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-rose-400 transition-all duration-500"
-                  style={{ width: `${Math.min(100, pctAds)}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Custos de Contingência Orgânica */}
-            <div className="rounded-xl p-3 bg-slate-100 dark:bg-[#161820] border border-slate-200 dark:border-[#22242D]">
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span className="font-medium text-slate-700 dark:text-slate-300">
-                  4. Reposição de Contas & Proxies
-                </span>
-                <span className="font-mono font-semibold text-amber-500">
-                  {formatCurrency(gastoContingencia)} ({pctContingencia.toFixed(0)}%)
-                </span>
-              </div>
-              <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-[#1E2028] overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-amber-400 transition-all duration-500"
-                  style={{ width: `${Math.min(100, pctContingencia)}%` }}
-                />
-              </div>
-            </div>
-          </div>
         </div>
 
-        {/* Rodapé Informativo */}
-        <div className="mt-4 pt-3 border-t border-slate-100 dark:border-[#1E2028] flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-          <span className="text-emerald-500">💡</span>
+        {/* Funnel bars — widths cascade like the reference */}
+        <div className="flex-1 space-y-2.5">
+          {funnelBars.map((bar, i) => {
+            // Cascade width: each bar narrows slightly like an actual funnel
+            const cascadeWidth = [100, Math.max(20, bar.pct), Math.min(70, Math.max(10, bar.pct + 5)), Math.min(50, Math.max(8, bar.pct + 3))][i] ?? bar.pct
+            return (
+              <div key={i}>
+                <div className="flex items-center justify-between text-[11px] mb-1">
+                  <span className="font-medium text-slate-700 dark:text-slate-300">{bar.label}</span>
+                  <span className="font-mono font-semibold" style={{ color: bar.textColor }}>
+                    {formatCurrency(bar.value)}
+                  </span>
+                </div>
+                <div className="h-7 w-full rounded-lg overflow-hidden bg-slate-100 dark:bg-[#16171D] relative">
+                  <div
+                    className="h-full rounded-lg transition-all duration-700 flex items-center px-2.5"
+                    style={{
+                      width: `${cascadeWidth}%`,
+                      backgroundColor: bar.color,
+                      opacity: 0.85,
+                    }}
+                  >
+                    <span className="text-white text-[10px] font-semibold font-mono truncate">
+                      {bar.sublabel}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        <div className="mt-4 pt-3 border-t border-slate-100 dark:border-[#1E2025] flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+          <span className="text-emerald-500">✦</span>
           <span>
-            Margem líquida global da agência:{' '}
+            Margem líquida global:{' '}
             <strong className="text-emerald-500 font-mono">{margemLucro.toFixed(1)}%</strong>
           </span>
         </div>
       </div>
 
-      {/* 2. Curva de Crescimento da Hora (Estilo Audience Growth da Imagem) */}
-      <div className="rounded-2xl border border-slate-200/90 dark:border-[#1E2025] bg-white dark:bg-[#121316] p-5 shadow-sm flex flex-col justify-between">
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">
-              Retorno Real da sua Hora
+      {/* Right: Hour rate growth panel — like "Audience Growth" in the reference */}
+      <div className="rounded-2xl border border-slate-200 dark:border-[#1E2025] bg-white dark:bg-[#0E0F12] p-5 shadow-sm flex flex-col">
+        <div className="mb-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+              Retorno Real da Hora
             </h3>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-[#7C3AED]/20 text-[#7C3AED] dark:text-[#C4B5FD] font-semibold">
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-500 font-semibold">
               Média Ponderada
             </span>
           </div>
-          <p className="text-xs text-slate-400 mb-3">
-            O indicador mais honesto da eficiência do seu tempo
+          <p className="text-[11px] text-slate-400 mt-0.5">
+            Indicador mais honesto da eficiência do seu tempo
           </p>
-
-          {/* Destaque do Valor da Hora */}
-          <div className="flex items-baseline gap-3 mb-2">
-            <span className="text-3xl font-extrabold text-slate-900 dark:text-white font-mono tabular-nums tracking-tight">
-              {formatCurrency(mediaRealHora)}
-              <span className="text-base font-medium text-slate-400 ml-1">/h</span>
-            </span>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-500">
-              {totalHoras > 0 ? `${totalHoras.toFixed(1)}h dedicadas` : 'Sem lançamentos'}
-            </span>
-          </div>
-
-          {/* Mini Gráfico de Área Suave Estilo Audience Growth */}
-          <div className="relative w-full h-32 my-2 overflow-hidden rounded-xl bg-slate-50 dark:bg-[#0E0F13] p-2">
-            <svg viewBox="0 0 300 90" className="w-full h-full overflow-visible">
-              <defs>
-                <linearGradient id="growthGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#84CC16" stopOpacity="0.4" />
-                  <stop offset="60%" stopColor="#84CC16" stopOpacity="0.1" />
-                  <stop offset="100%" stopColor="#84CC16" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
-
-              {/* Curva Suave Sobe e Desce Suave */}
-              <path
-                d="M 10 75 C 60 70, 100 65, 140 50 C 180 35, 230 20, 290 12 L 290 85 L 10 85 Z"
-                fill="url(#growthGradient)"
-              />
-              <path
-                d="M 10 75 C 60 70, 100 65, 140 50 C 180 35, 230 20, 290 12"
-                fill="none"
-                stroke="#84CC16"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              />
-              <circle cx="290" cy="12" r="4.5" fill="#84CC16" className="drop-shadow-md" />
-              <circle cx="290" cy="12" r="2" fill="#FFFFFF" />
-            </svg>
-          </div>
         </div>
 
-        {/* Breakdown de Horas Dedicadas */}
-        <div className="pt-3 border-t border-slate-100 dark:border-[#1E2028] grid grid-cols-2 gap-4 text-xs font-mono">
-          <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-[#161820]">
-            <span className="text-[10px] text-slate-400 block mb-0.5">Horas Orgânico (OFM)</span>
-            <span className="text-sm font-bold text-slate-900 dark:text-white tabular-nums">
+        {/* Big number — like "186.4K" in the reference */}
+        <div className="flex items-baseline gap-2 mb-1">
+          <span className="text-3xl font-extrabold text-slate-900 dark:text-white font-mono tabular-nums tracking-tight">
+            {formatCurrency(mediaRealHora)}
+          </span>
+          <span className="text-sm text-slate-400 font-medium">/hora</span>
+          {totalHoras > 0 && (
+            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ml-1">
+              +{totalHoras.toFixed(1)}h dedicadas
+            </span>
+          )}
+        </div>
+
+        {/* Mini sparkline like the reference image */}
+        <div className="relative w-full h-28 my-3 overflow-hidden rounded-xl bg-slate-50 dark:bg-[#0E0F13]">
+          <svg viewBox="0 0 300 90" className="w-full h-full overflow-visible" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="hourGrowthGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#84CC16" stopOpacity="0.35" />
+                <stop offset="100%" stopColor="#84CC16" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M 0 80 C 50 78, 80 72, 120 58 C 160 44, 200 28, 250 16 C 265 13, 280 11, 300 8 L 300 90 L 0 90 Z"
+              fill="url(#hourGrowthGrad)"
+            />
+            <path
+              d="M 0 80 C 50 78, 80 72, 120 58 C 160 44, 200 28, 250 16 C 265 13, 280 11, 300 8"
+              fill="none"
+              stroke="#84CC16"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
+            <circle cx="300" cy="8" r="4.5" fill="#84CC16" />
+            <circle cx="300" cy="8" r="2" fill="#fff" />
+          </svg>
+        </div>
+
+        {/* Hours breakdown — like the stats under the audience chart in the reference */}
+        <div className="mt-auto pt-3 border-t border-slate-100 dark:border-[#1E2025] grid grid-cols-3 gap-3 text-[11px]">
+          <div>
+            <span className="text-slate-400 block text-[10px] mb-0.5">Total horas</span>
+            <span className="font-mono font-bold text-slate-900 dark:text-white">
+              {formatHours(totalHoras)}
+            </span>
+          </div>
+          <div>
+            <span className="text-slate-400 block text-[10px] mb-0.5">OFM Orgânico</span>
+            <span className="font-mono font-bold text-slate-900 dark:text-white">
               {formatHours(horasOrganico)}
             </span>
           </div>
-
-          <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-[#161820]">
-            <span className="text-[10px] text-slate-400 block mb-0.5">Horas Tráfego Pago</span>
-            <span className="text-sm font-bold text-slate-900 dark:text-white tabular-nums">
+          <div>
+            <span className="text-slate-400 block text-[10px] mb-0.5">Tráfego Pago</span>
+            <span className="font-mono font-bold text-slate-900 dark:text-white">
               {formatHours(horasPago)}
             </span>
           </div>

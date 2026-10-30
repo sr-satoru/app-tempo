@@ -1,6 +1,7 @@
 import { serviceModels } from './models/service.models'
 import { serviceAnalytics } from './analytics/service.analytics'
 import { serviceExport } from './export/service.export'
+import { serviceFinance } from './finance/service.finance'
 
 /**
  * Fachada Central (Facade) de Serviços
@@ -11,4 +12,5 @@ export const api = {
   models: serviceModels,
   analytics: serviceAnalytics,
   export: serviceExport,
+  finance: serviceFinance,
 }

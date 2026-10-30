@@ -1,10 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { ModelSelector } from '@/components/analytics/model-selector'
-import { SummaryCards } from '@/components/analytics/summary-cards'
 import { TableOrganic } from '@/components/analytics/table-organic'
+import { OrganicFinancialOverview } from '@/components/analytics/organic-financial-overview'
 import { useCalendarContext } from '@/contexts/calendar-context'
 import { getDaysInMonth } from '@/domain/calendar'
-import { summarizeOrganicPeriod } from '@/domain/calculations'
 import { api } from '@/services/index.api'
 import type { ModeloEntity } from '@/types/model'
 import type { OrganicDailyEntry } from '@/types/analytics'
@@ -86,13 +85,13 @@ export default function OrganicPage() {
     return getDaysInMonth(selectedYear, selectedMonth)
   }, [selectedYear, selectedMonth])
 
-  const summary = useMemo(() => {
-    return summarizeOrganicPeriod(entries)
-  }, [entries])
+  const currentModel = useMemo(() => {
+    return models.find((m) => m.id === selectedModelId)
+  }, [models, selectedModelId])
 
   return (
     <div className="space-y-4">
-      {/* Seletor de Modelo */}
+      {/* 1. Seletor de Modelo */}
       <ModelSelector
         models={models}
         selectedModelId={selectedModelId}
@@ -101,15 +100,19 @@ export default function OrganicPage() {
         onDeleteModel={handleDeleteModel}
       />
 
-      {/* Cards de Resumo */}
-      <SummaryCards summary={summary} mode="organico" />
-
-      {/* Tabela Diária do Mês - Todos os dias anteriores e atuais 100% editáveis */}
+      {/* 2. Tabela Diária do Mês - PRIMEIRA COISA A SER VISTA (Foco total no preenchimento) */}
       <TableOrganic
         days={days}
         entries={entries}
         selectedModelId={selectedModelId}
         onSaveEntry={handleSaveEntry}
+      />
+
+      {/* 3. Painel Financeiro Completo Abaixo da Tabela: Taxas de Gateway, Custos Iniciais & Lucro Líquido Real */}
+      <OrganicFinancialOverview
+        entries={entries}
+        selectedModelId={selectedModelId}
+        modelName={currentModel?.nome || 'Modelo'}
       />
     </div>
   )

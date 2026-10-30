@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { formatCurrency } from '@/lib/utils'
 
 export interface ChannelShareItem {
@@ -16,149 +16,143 @@ export const DashboardChannelDonut: React.FC<DashboardChannelDonutProps> = ({
   items,
   totalFaturamento,
 }) => {
-  const radius = 54
-  const strokeWidth = 14
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
+
+  const radius = 52
+  const strokeWidth = 13
   const circumference = 2 * Math.PI * radius
 
-  // Filtra itens com faturamento > 0 ou fornece fallback limpo
   const validItems = items.filter((it) => it.faturamento > 0)
   const displayItems =
     validItems.length > 0
       ? validItems
       : [
-          { channel: 'TikTok', faturamento: 1, color: '#7C3AED' },
+          { channel: 'TikTok', faturamento: 1, color: '#6366F1' },
           { channel: 'Instagram', faturamento: 1, color: '#3B82F6' },
           { channel: 'Tráfego Pago', faturamento: 1, color: '#10B981' },
         ]
 
-  const effectiveTotal = validItems.length > 0 ? totalFaturamento : 3
+  const effectiveTotal = validItems.length > 0 ? Math.max(totalFaturamento, 1) : 3
 
-  // Calcula offsets para cada fatia circular
-  let accumulatedPercent = 0
-  const slices = displayItems.map((item) => {
-    const percent = item.faturamento / (effectiveTotal || 1)
-    const strokeDasharray = `${(percent * circumference).toFixed(2)} ${circumference.toFixed(2)}`
-    const strokeDashoffset = (-accumulatedPercent * circumference).toFixed(2)
-    accumulatedPercent += percent
-
-    return {
-      ...item,
-      percent: percent * 100,
-      strokeDasharray,
-      strokeDashoffset,
-    }
+  let acc = 0
+  const slices = displayItems.map((item, i) => {
+    const pct = item.faturamento / effectiveTotal
+    const dashArray = `${(pct * circumference).toFixed(2)} ${circumference.toFixed(2)}`
+    const dashOffset = (-acc * circumference).toFixed(2)
+    acc += pct
+    return { ...item, pct: pct * 100, dashArray, dashOffset, idx: i }
   })
 
-  // Canal principal
-  const topChannel = validItems.length > 0 ? validItems[0] : null
+  const topChannel = validItems[0] ?? null
 
   return (
-    <div className="rounded-2xl border border-slate-200/90 dark:border-[#1E2025] bg-white dark:bg-[#121316] p-5 shadow-sm flex flex-col justify-between">
-      {/* Cabeçalho */}
-      <div>
-        <div className="flex items-center justify-between mb-1">
-          <h3 className="text-base font-bold text-slate-900 dark:text-white">
+    <div className="rounded-2xl border border-slate-200 dark:border-[#1E2025] bg-white dark:bg-[#0E0F12] p-5 shadow-sm flex flex-col h-full">
+      {/* Header */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
             Atribuição por Canal
           </h3>
-          <span className="text-xs text-slate-400 font-mono">Receita por fonte</span>
+          <span className="text-[10px] text-slate-400 font-mono">Receita por fonte →</span>
         </div>
-        <p className="text-xs text-slate-400 mb-5">
-          Divisão percentual entre redes sociais orgânicas e anúncios
+        <p className="text-[11px] text-slate-400 mt-0.5">
+          Divisão entre redes sociais orgânicas e anúncios
         </p>
+      </div>
 
-        {/* Donut e Legenda lado a lado */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 my-2">
-          {/* Donut SVG com Centro */}
-          <div className="relative w-36 h-36 flex-shrink-0 flex items-center justify-center">
-            <svg viewBox="0 0 140 140" className="w-full h-full -rotate-90">
-              {/* Círculo de Fundo */}
+      {/* Donut + Legend — exactly like reference image */}
+      <div className="flex items-center gap-5 flex-1">
+        {/* Donut */}
+        <div className="relative w-[120px] h-[120px] flex-shrink-0">
+          <svg viewBox="0 0 120 120" className="w-full h-full -rotate-90">
+            <circle
+              cx="60" cy="60" r={radius}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={strokeWidth}
+              className="text-slate-100 dark:text-[#1A1C24]"
+            />
+            {slices.map((s) => (
               <circle
-                cx="70"
-                cy="70"
-                r={radius}
+                key={s.idx}
+                cx="60" cy="60" r={radius}
                 fill="none"
-                stroke="currentColor"
-                strokeWidth={strokeWidth}
-                className="text-slate-100 dark:text-[#1C1E26]"
+                stroke={s.color}
+                strokeWidth={hoveredIdx === s.idx ? strokeWidth + 2.5 : strokeWidth}
+                strokeDasharray={s.dashArray}
+                strokeDashoffset={s.dashOffset}
+                strokeLinecap="butt"
+                className="transition-all duration-300 cursor-pointer"
+                onMouseEnter={() => setHoveredIdx(s.idx)}
+                onMouseLeave={() => setHoveredIdx(null)}
               />
-
-              {/* Fatias do Donut */}
-              {slices.map((slice, i) => (
-                <circle
-                  key={i}
-                  cx="70"
-                  cy="70"
-                  r={radius}
-                  fill="none"
-                  stroke={slice.color}
-                  strokeWidth={strokeWidth}
-                  strokeDasharray={slice.strokeDasharray}
-                  strokeDashoffset={slice.strokeDashoffset}
-                  strokeLinecap="round"
-                  className="transition-all duration-500"
-                />
-              ))}
-            </svg>
-
-            {/* Conteúdo Central do Donut */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center select-none pointer-events-none">
-              <span className="text-[11px] text-slate-400 font-medium">Total</span>
-              <span className="text-sm font-bold text-slate-900 dark:text-white font-mono tabular-nums leading-tight">
-                {totalFaturamento >= 1000
-                  ? `R$ ${(totalFaturamento / 1000).toFixed(1)}k`
-                  : formatCurrency(totalFaturamento)}
-              </span>
-              <span className="text-[9px] text-[#7C3AED] dark:text-[#C4B5FD] font-semibold mt-0.5">
-                Atribuído
-              </span>
-            </div>
-          </div>
-
-          {/* Legenda com Valores e % */}
-          <div className="flex-1 w-full space-y-2">
-            {slices.map((item, idx) => (
-              <div
-                key={idx}
-                className="flex items-center justify-between text-xs py-1 border-b border-slate-100 dark:border-[#1E2028] last:border-none"
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <span
-                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: item.color }}
-                  />
-                  <span className="text-slate-700 dark:text-slate-200 font-medium truncate">
-                    {item.channel}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2.5 flex-shrink-0 font-mono">
-                  <span className="text-slate-900 dark:text-white font-semibold">
-                    {validItems.length > 0 ? formatCurrency(item.faturamento) : '—'}
-                  </span>
-                  <span className="text-[11px] text-slate-400 w-8 text-right">
-                    {validItems.length > 0 ? `${item.percent.toFixed(0)}%` : '0%'}
-                  </span>
-                </div>
-              </div>
             ))}
+          </svg>
+          {/* Center text */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none select-none">
+            <span className="text-[9px] text-slate-400 leading-none">Total</span>
+            <span className="text-[11px] font-bold text-slate-900 dark:text-white font-mono tabular-nums leading-tight mt-0.5">
+              {totalFaturamento >= 1_000_000
+                ? `R$${(totalFaturamento / 1_000_000).toFixed(1)}M`
+                : totalFaturamento >= 1000
+                ? `R$${(totalFaturamento / 1000).toFixed(1)}k`
+                : formatCurrency(totalFaturamento)}
+            </span>
+            <span className="text-[9px] text-indigo-500 font-semibold mt-0.5">Atribuído</span>
           </div>
+        </div>
+
+        {/* Legend — styled exactly like the reference */}
+        <div className="flex-1 space-y-2 min-w-0">
+          {slices.map((item) => (
+            <div
+              key={item.idx}
+              className={`flex items-center justify-between text-xs py-0.5 cursor-default transition-opacity duration-200 ${
+                hoveredIdx !== null && hoveredIdx !== item.idx ? 'opacity-40' : 'opacity-100'
+              }`}
+              onMouseEnter={() => setHoveredIdx(item.idx)}
+              onMouseLeave={() => setHoveredIdx(null)}
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <span
+                  className="w-2 h-2 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: item.color }}
+                />
+                <span className="text-slate-700 dark:text-slate-300 font-medium truncate text-[11px]">
+                  {item.channel}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <span className="font-mono font-semibold text-slate-900 dark:text-white text-[11px]">
+                  {validItems.length > 0 ? formatCurrency(item.faturamento) : '—'}
+                </span>
+                <span
+                  className="text-[10px] text-slate-400 font-mono w-8 text-right"
+                  style={{ color: hoveredIdx === item.idx ? item.color : undefined }}
+                >
+                  {validItems.length > 0 ? `${item.pct.toFixed(0)}%` : '—'}
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Callout Footer estilo Dribbble / Imagem de Referência */}
-      <div className="mt-4 pt-3 border-t border-slate-100 dark:border-[#1E2028] flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
-        <span className="text-[#7C3AED] text-sm">✨</span>
+      {/* Footer callout */}
+      <div className="mt-4 pt-3 border-t border-slate-100 dark:border-[#1E2025] text-[11px] text-slate-500 dark:text-slate-400 flex items-start gap-2">
+        <span className="text-indigo-400 flex-shrink-0 mt-px">✦</span>
         <span className="leading-snug">
           {topChannel ? (
             <>
-              <strong>{topChannel.channel}</strong> é o principal canal, representando{' '}
-              <strong className="text-[#7C3AED] dark:text-[#C4B5FD]">
+              <strong className="text-slate-700 dark:text-slate-300">{topChannel.channel}</strong>{' '}
+              é o principal canal, representando{' '}
+              <strong style={{ color: topChannel.color }}>
                 {((topChannel.faturamento / (totalFaturamento || 1)) * 100).toFixed(0)}%
               </strong>{' '}
-              da sua receita este mês.
+              da receita.
             </>
           ) : (
-            'Cadastre lançamentos nas modelos e BMs para visualizar a atribuição detalhada.'
+            'Cadastre lançamentos para visualizar a atribuição por canal.'
           )}
         </span>
       </div>

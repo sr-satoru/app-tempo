@@ -4,6 +4,8 @@ import {
   calculatePaidDaily,
   summarizeOrganicPeriod,
   summarizePaidPeriod,
+  calculateGatewayBreakdown,
+  consolidateOrganicFinances,
 } from '../calculations'
 import type { OrganicDailyEntry, PaidDailyEntry } from '@/types/analytics'
 
@@ -100,4 +102,126 @@ describe('Motor Matemático: Cálculos Diários e Acumulados', () => {
     expect(summary.totalHoras).toBe(11)
     expect(summary.mediaRealHora).toBeCloseTo(45.45, 2)
   })
+
+  it('deve calcular corretamente taxas de gateway (apenas %, apenas fixa e mista)', () => {
+    // 1. Apenas Porcentagem
+    const resPercent = calculateGatewayBreakdown(1000, {
+      preset: 'mercadopago',
+      name: 'Mercado Pago',
+      feeType: 'percentage',
+      percentageFee: 4.99,
+      fixedFeePerTransaction: 0,
+      averageTicket: 50,
+      withdrawalOrMonthlyFee: 0,
+      enabled: true,
+    })
+    expect(resPercent.percentCost).toBe(49.9)
+    expect(resPercent.fixedTransactionCost).toBe(0)
+    expect(resPercent.totalRetido).toBe(49.9)
+
+    // 2. Apenas Taxa Fixa por transação (ex: 20 vendas de R$ 50 = R$ 1000)
+    const resFixed = calculateGatewayBreakdown(1000, {
+      preset: 'custom',
+      name: 'Custom',
+      feeType: 'fixed',
+      percentageFee: 0,
+      fixedFeePerTransaction: 2.0,
+      averageTicket: 50, // 1000 / 50 = 20 transações
+      withdrawalOrMonthlyFee: 5,
+      enabled: true,
+    })
+    expect(resFixed.percentCost).toBe(0)
+    expect(resFixed.estimatedTransactionsCount).toBe(20)
+    expect(resFixed.fixedTransactionCost).toBe(40) // 20 * 2
+    expect(resFixed.totalRetido).toBe(45) // 40 + 5 saque
+
+    // 3. Mista (ex: Kiwify 8.99% + R$ 2.49)
+    const resMixed = calculateGatewayBreakdown(1000, {
+      preset: 'kiwify',
+      name: 'Kiwify',
+      feeType: 'mixed',
+      percentageFee: 8.99,
+      fixedFeePerTransaction: 2.49,
+      averageTicket: 50, // 20 transações
+      withdrawalOrMonthlyFee: 3.67,
+      enabled: true,
+    })
+    expect(resMixed.percentCost).toBe(89.9)
+    expect(resMixed.fixedTransactionCost).toBeCloseTo(49.8, 1) // 20 * 2.49 = 49.8
+    expect(resMixed.totalRetido).toBeCloseTo(89.9 + 49.8 + 3.67, 1)
+  })
+
+  it('deve consolidar o lucro líquido real abatendo gateway e custos fixos/iniciais amortizados', () => {
+    const entries: OrganicDailyEntry[] = [
+      {
+        id: '1',
+        data: '2026-10-01',
+        modeloId: 'mod_1',
+        canalRedeSocial: 'TikTok',
+        horasTrabalhadas: 20,
+        faturamento: 5000,
+        custoReposicaoContas: 200,
+        qtdContasRepostas: 4,
+        outrosCustosContingencia: 100, // Contingência total = 300
+      },
+    ]
+
+    // Gateway: 10% total para facilitar o cálculo mental (R$ 500)
+    const gateway = {
+      preset: 'custom' as const,
+      name: 'Custom',
+      feeType: 'percentage' as const,
+      percentageFee: 10,
+      fixedFeePerTransaction: 0,
+      averageTicket: 100,
+      withdrawalOrMonthlyFee: 0,
+      enabled: true,
+    }
+
+    // Custos:
+    // 1 inicial de R$ 900 amortizado em 3 meses => R$ 300 no mês
+    // 1 mensal de R$ 200 => R$ 200 no mês
+    // Total custos extras = R$ 500
+    const costs = [
+      {
+        id: 'cost_1',
+        modeloId: 'mod_1',
+        nome: 'Celular iPhone 11',
+        categoria: 'equipamento' as const,
+        tipo: 'inicial' as const,
+        valor: 900,
+        amortizarMeses: 3,
+        ativo: true,
+        criadoEm: '2026-10-01',
+      },
+      {
+        id: 'cost_2',
+        modeloId: 'mod_1',
+        nome: 'Assinatura Multilogin',
+        categoria: 'software' as const,
+        tipo: 'mensal' as const,
+        valor: 200,
+        ativo: true,
+        criadoEm: '2026-10-01',
+      },
+    ]
+
+    const result = consolidateOrganicFinances(entries, gateway, costs)
+
+    expect(result.faturamentoBruto).toBe(5000)
+    expect(result.gatewayBreakdown.totalRetido).toBe(500)
+    expect(result.totalContingenciaDiaria).toBe(300)
+    expect(result.custoInicialAplicado).toBe(300)
+    expect(result.custoFixoMensalTotal).toBe(200)
+    expect(result.totalCustosExtras).toBe(500)
+
+    // Deduções totais = 500 (gateway) + 300 (contingência) + 500 (extras) = 1300
+    // Lucro líquido real = 5000 - 1300 = 3700
+    expect(result.lucroLiquidoReal).toBe(3700)
+    // Horas = 20 => Valor Hora Real = 3700 / 20 = R$ 185/h
+    expect(result.valorHoraReal).toBe(185)
+    // Margem real = (3700 / 5000) * 100 = 74%
+    expect(result.margemLiquidaReal).toBe(74)
+  })
 })
+

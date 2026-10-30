@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
 import { useCalendarContext } from '@/contexts/calendar-context'
 import { MONTH_NAMES, getDaysInMonth } from '@/domain/calendar'
 import {
@@ -25,17 +24,91 @@ import { DashboardEfficiencyFunnel } from '@/components/analytics/dashboard-effi
 
 type OperationFilter = 'all' | 'organic' | 'paid'
 
+// ---- KPI Card Component (exactly like reference image) ----
+interface KpiCardProps {
+  label: string
+  value: string
+  delta?: string
+  deltaPositive?: boolean
+  sub?: string
+  accent?: boolean
+  icon?: string
+}
+
+function KpiCard({ label, value, delta, deltaPositive = true, sub, accent, icon }: KpiCardProps) {
+  return (
+    <div
+      className={`rounded-2xl border p-5 shadow-sm transition-all duration-200 hover:shadow-md ${
+        accent
+          ? 'border-indigo-200 dark:border-indigo-500/30 bg-indigo-50/40 dark:bg-indigo-500/5'
+          : 'border-slate-200 dark:border-[#1E2025] bg-white dark:bg-[#0E0F12]'
+      }`}
+    >
+      <div className="flex items-start justify-between mb-3">
+        <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-tight">
+          {label}
+        </span>
+        {delta !== undefined && (
+          <span
+            className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+              deltaPositive
+                ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                : 'bg-rose-50 dark:bg-rose-500/10 text-rose-500'
+            }`}
+          >
+            {delta}
+          </span>
+        )}
+        {icon && !delta && (
+          <span className="text-base opacity-60">{icon}</span>
+        )}
+      </div>
+      <div
+        className={`text-[26px] font-extrabold tabular-nums font-mono tracking-tight leading-none ${
+          accent ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-900 dark:text-white'
+        }`}
+      >
+        {value}
+      </div>
+      {sub && (
+        <p className="text-[11px] text-slate-400 mt-2 leading-snug">{sub}</p>
+      )}
+    </div>
+  )
+}
+
+// ---- Filter Pill ----
+interface PillProps {
+  active: boolean
+  onClick: () => void
+  children: React.ReactNode
+}
+function Pill({ active, onClick, children }: PillProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 cursor-pointer ${
+        active
+          ? 'bg-indigo-600 text-white shadow-sm'
+          : 'bg-slate-100 dark:bg-[#16171D] text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-[#1E2028]'
+      }`}
+    >
+      {children}
+    </button>
+  )
+}
+
+// ---- Main Dashboard ----
 export default function DashboardPage() {
   const navigate = useNavigate()
   const { selectedYear, selectedMonth } = useCalendarContext()
 
-  // Dados brutos
   const [models, setModels] = useState<ModeloEntity[]>([])
   const [paidProfiles, setPaidProfiles] = useState<PaidProfileEntity[]>([])
   const [organicEntries, setOrganicEntries] = useState<OrganicDailyEntry[]>([])
   const [paidEntries, setPaidEntries] = useState<PaidDailyEntry[]>([])
 
-  // Estados de Filtros Completos
   const [selectedOperation, setSelectedOperation] = useState<OperationFilter>('all')
   const [selectedEntityId, setSelectedEntityId] = useState<string>('all')
   const [activeRankingTab, setActiveRankingTab] = useState<'models' | 'profiles'>('models')
@@ -56,45 +129,27 @@ export default function DashboardPage() {
     loadData()
   }, [selectedYear, selectedMonth])
 
-  // Ajusta a aba do ranking conforme a operação selecionada
   useEffect(() => {
-    if (selectedOperation === 'paid') {
-      setActiveRankingTab('profiles')
-    } else if (selectedOperation === 'organic') {
-      setActiveRankingTab('models')
-    }
+    if (selectedOperation === 'paid') setActiveRankingTab('profiles')
+    else if (selectedOperation === 'organic') setActiveRankingTab('models')
   }, [selectedOperation])
 
-  // Entradas Filtradas dinamicamente
   const filteredOrganicEntries = useMemo(() => {
     if (selectedOperation === 'paid') return []
     if (selectedEntityId === 'all') return organicEntries
-
-    // Se uma modelo específica estiver selecionada
     const isModel = models.some((m) => m.id === selectedEntityId)
-    if (isModel) {
-      return organicEntries.filter((e) => e.modeloId === selectedEntityId)
-    }
-
-    // Se selecionou uma BM enquanto em 'all', organicEntries fica vazio
+    if (isModel) return organicEntries.filter((e) => e.modeloId === selectedEntityId)
     return []
   }, [selectedOperation, selectedEntityId, organicEntries, models])
 
   const filteredPaidEntries = useMemo(() => {
     if (selectedOperation === 'organic') return []
     if (selectedEntityId === 'all') return paidEntries
-
-    // Se um perfil/BM específico estiver selecionado
     const isProfile = paidProfiles.some((p) => p.id === selectedEntityId)
-    if (isProfile) {
-      return paidEntries.filter((e) => e.profileId === selectedEntityId)
-    }
-
-    // Se selecionou uma Modelo enquanto em 'all', paidEntries fica vazio
+    if (isProfile) return paidEntries.filter((e) => e.profileId === selectedEntityId)
     return []
   }, [selectedOperation, selectedEntityId, paidEntries, paidProfiles])
 
-  // Resumos dos períodos calculados dinamicamente com base no filtro
   const organicSummary = useMemo(
     () => summarizeOrganicPeriod(filteredOrganicEntries),
     [filteredOrganicEntries]
@@ -110,39 +165,28 @@ export default function DashboardPage() {
   const totalHoras = organicSummary.totalHoras + paidSummary.totalHoras
   const mediaRealHoraGeral = totalHoras > 0 ? totalLucro / totalHoras : 0
   const margemGeral = totalFaturamento > 0 ? (totalLucro / totalFaturamento) * 100 : 0
+  const roasMedio = paidSummary.mediaRoas ?? 0
 
-  // Dias do mês atual para o gráfico de performance diária
-  const monthDays = useMemo(() => {
-    return getDaysInMonth(selectedYear, selectedMonth)
-  }, [selectedYear, selectedMonth])
+  const monthDays = useMemo(() => getDaysInMonth(selectedYear, selectedMonth), [selectedYear, selectedMonth])
 
-  // Agregação dos dados diários para o gráfico principal
   const dailyPerformanceData = useMemo<DailyDataPoint[]>(() => {
     return monthDays.map((day) => {
       const oEntries = filteredOrganicEntries.filter((e) => e.data === day.dateString)
       const pEntries = filteredPaidEntries.filter((e) => e.data === day.dateString)
-
-      let fat = 0
-      let cust = 0
-      let horas = 0
-
+      let fat = 0, cust = 0, horas = 0
       oEntries.forEach((e) => {
         const c = calculateOrganicDaily(e)
         fat += e.faturamento
         cust += c.totalContingencia
         horas += e.horasTrabalhadas
       })
-
       pEntries.forEach((e) => {
         const c = calculatePaidDaily(e)
         fat += e.faturamento
         cust += c.totalGastos
         horas += e.horasTrabalhadas
       })
-
       const lucro = fat - cust
-      const valorHora = horas > 0 ? lucro / horas : 0
-
       return {
         dayNumber: day.dayNumber,
         dateString: day.dateString,
@@ -150,42 +194,29 @@ export default function DashboardPage() {
         custos: cust,
         lucro,
         horas,
-        valorHora,
+        valorHora: horas > 0 ? lucro / horas : 0,
       }
     })
   }, [monthDays, filteredOrganicEntries, filteredPaidEntries])
 
-  // Distribuição de faturamento para o Donut Chart
   const channelShares = useMemo<ChannelShareItem[]>(() => {
-    const channelMap = new Map<string, number>()
-
+    const map = new Map<string, number>()
     if (selectedOperation === 'paid') {
-      // Quando filtrado em Pago: mostra divisão por BM
       paidProfiles.forEach((p) => {
-        const entries = filteredPaidEntries.filter((e) => e.profileId === p.id)
-        const total = entries.reduce((acc, curr) => acc + curr.faturamento, 0)
-        if (total > 0) {
-          channelMap.set(p.nome, total)
-        }
+        const total = filteredPaidEntries.filter((e) => e.profileId === p.id).reduce((a, c) => a + c.faturamento, 0)
+        if (total > 0) map.set(p.nome, total)
       })
     } else {
-      // Orgânico por canal
       filteredOrganicEntries.forEach((e) => {
         const ch = e.canalRedeSocial || 'Outros'
-        channelMap.set(ch, (channelMap.get(ch) || 0) + e.faturamento)
+        map.set(ch, (map.get(ch) || 0) + e.faturamento)
       })
-
-      // Se todas as operações, adiciona o tráfego pago
-      if (selectedOperation === 'all') {
-        const totalPago = paidSummary.totalFaturamento
-        if (totalPago > 0) {
-          channelMap.set('Tráfego Pago (Ads)', totalPago)
-        }
+      if (selectedOperation === 'all' && paidSummary.totalFaturamento > 0) {
+        map.set('Tráfego Pago (Ads)', paidSummary.totalFaturamento)
       }
     }
-
-    const colorPalette: Record<string, string> = {
-      TikTok: '#7C3AED',
+    const palette: Record<string, string> = {
+      TikTok: '#6366F1',
       Instagram: '#3B82F6',
       Reddit: '#EC4899',
       YouTube: '#EF4444',
@@ -193,346 +224,204 @@ export default function DashboardPage() {
       Outros: '#F59E0B',
       'Tráfego Pago (Ads)': '#10B981',
     }
-
-    const fallbackColors = ['#8B5CF6', '#3B82F6', '#10B981', '#EC4899', '#F59E0B', '#06B6D4']
-    let colorIdx = 0
-
+    const fallback = ['#8B5CF6', '#3B82F6', '#10B981', '#EC4899', '#F59E0B', '#06B6D4']
+    let ci = 0
     const items: ChannelShareItem[] = []
-    channelMap.forEach((fat, channel) => {
-      items.push({
-        channel,
-        faturamento: fat,
-        color: colorPalette[channel] || fallbackColors[colorIdx++ % fallbackColors.length],
-      })
+    map.forEach((fat, ch) => {
+      items.push({ channel: ch, faturamento: fat, color: palette[ch] || fallback[ci++ % fallback.length] })
     })
-
     return items.sort((a, b) => b.faturamento - a.faturamento)
   }, [filteredOrganicEntries, filteredPaidEntries, selectedOperation, paidProfiles, paidSummary.totalFaturamento])
 
-  // Ranking das Modelos OFM
-  const modelRanking = useMemo(() => {
-    return models
-      .map((model) => {
-        const mEntries = organicEntries.filter((e) => e.modeloId === model.id)
-        const summary = summarizeOrganicPeriod(mEntries)
-        return {
-          model,
-          faturamento: summary.totalFaturamento,
-          contingencia: summary.totalGastos,
-          lucro: summary.totalLucro,
-          horas: summary.totalHoras,
-          valorHora: summary.mediaRealHora,
-          contasRepostas: summary.totalContasRepostas || 0,
-        }
-      })
-      .sort((a, b) => b.valorHora - a.valorHora)
-  }, [models, organicEntries])
+  const modelRanking = useMemo(() =>
+    models.map((model) => {
+      const mEntries = organicEntries.filter((e) => e.modeloId === model.id)
+      const s = summarizeOrganicPeriod(mEntries)
+      return { model, faturamento: s.totalFaturamento, contingencia: s.totalGastos, lucro: s.totalLucro, horas: s.totalHoras, valorHora: s.mediaRealHora, contasRepostas: s.totalContasRepostas || 0 }
+    }).sort((a, b) => b.valorHora - a.valorHora),
+    [models, organicEntries]
+  )
 
-  // Ranking das BMs de Tráfego Pago
-  const profileRanking = useMemo(() => {
-    return paidProfiles
-      .map((profile) => {
-        const pEntries = paidEntries.filter((e) => e.profileId === profile.id)
-        const summary = summarizePaidPeriod(pEntries)
-        return {
-          profile,
-          faturamento: summary.totalFaturamento,
-          gastoAds: summary.totalGastos,
-          lucro: summary.totalLucro,
-          horas: summary.totalHoras,
-          valorHora: summary.mediaRealHora,
-          roas: summary.mediaRoas || 0,
-          roiPercent: summary.roiGeralPercent || 0,
-        }
-      })
-      .sort((a, b) => b.valorHora - a.valorHora)
-  }, [paidProfiles, paidEntries])
+  const profileRanking = useMemo(() =>
+    paidProfiles.map((profile) => {
+      const pEntries = paidEntries.filter((e) => e.profileId === profile.id)
+      const s = summarizePaidPeriod(pEntries)
+      return { profile, faturamento: s.totalFaturamento, gastoAds: s.totalGastos, lucro: s.totalLucro, horas: s.totalHoras, valorHora: s.mediaRealHora, roas: s.mediaRoas || 0, roiPercent: s.roiGeralPercent || 0 }
+    }).sort((a, b) => b.valorHora - a.valorHora),
+    [paidProfiles, paidEntries]
+  )
 
-  // Saudação de acordo com o horário do dia
   const greeting = useMemo(() => {
-    const hour = new Date().getHours()
-    if (hour < 12) return 'Bom dia'
-    if (hour < 18) return 'Boa tarde'
+    const h = new Date().getHours()
+    if (h < 12) return 'Bom dia'
+    if (h < 18) return 'Boa tarde'
     return 'Boa noite'
   }, [])
 
-  // Identificação do filtro ativo para exibição no cabeçalho
-  const activeFilterName = useMemo(() => {
+  const activeFilterLabel = useMemo(() => {
     if (selectedEntityId !== 'all') {
-      const mod = models.find((m) => m.id === selectedEntityId)
-      if (mod) return `Modelo: ${mod.nome}`
-      const prof = paidProfiles.find((p) => p.id === selectedEntityId)
-      if (prof) return `BM: ${prof.nome}`
+      const m = models.find((x) => x.id === selectedEntityId)
+      if (m) return m.nome
+      const p = paidProfiles.find((x) => x.id === selectedEntityId)
+      if (p) return p.nome
     }
-    if (selectedOperation === 'organic') return 'Tráfego Orgânico (OFM)'
-    if (selectedOperation === 'paid') return 'Tráfego Pago (Ads & BMs)'
-    return 'Todas as Operações (Consolidado)'
+    if (selectedOperation === 'organic') return 'Orgânico (OFM)'
+    if (selectedOperation === 'paid') return 'Tráfego Pago'
+    return 'Todas as Operações'
   }, [selectedOperation, selectedEntityId, models, paidProfiles])
 
+  const hasFilter = selectedOperation !== 'all' || selectedEntityId !== 'all'
+
   return (
-    <div className="space-y-6">
-      {/* 1. Header do Dashboard com Indicadores e Navegação Direta */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <div className="space-y-5">
+
+      {/* ── HEADER ── */}
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
             {greeting}, Operador.
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Visualizando{' '}
-            <strong className="text-[#7C3AED] dark:text-[#A78BFA] font-semibold">
-              {activeFilterName}
-            </strong>{' '}
-            em {MONTH_NAMES[selectedMonth]} de {selectedYear} (
-            <span className="font-mono text-emerald-500 font-semibold">{margemGeral.toFixed(1)}% margem</span>).
+          <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5">
+            {activeFilterLabel} · {MONTH_NAMES[selectedMonth]} de {selectedYear}
+            {totalFaturamento > 0 && (
+              <> · <span className="text-emerald-500 font-mono font-medium">{margemGeral.toFixed(1)}% de margem</span></>
+            )}
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-200/90 dark:border-[#1E2025] bg-white dark:bg-[#121316] text-xs font-medium text-slate-700 dark:text-slate-300 shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Dados em Tempo Real</span>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 px-3 py-1.5 rounded-full border border-slate-200 dark:border-[#1E2025] bg-white dark:bg-[#0E0F12]">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            Dados em tempo real
           </div>
+        </div>
+      </div>
 
-          <Button
-            variant="outline"
-            size="sm"
+      {/* ── FILTER BAR — clean pill style ── */}
+      <div className="flex flex-wrap items-center gap-3 p-4 rounded-2xl border border-slate-200 dark:border-[#1E2025] bg-white dark:bg-[#0E0F12] shadow-sm">
+        {/* Operation pills */}
+        <div className="flex items-center gap-1.5">
+          <Pill active={selectedOperation === 'all' && selectedEntityId === 'all'} onClick={() => { setSelectedOperation('all'); setSelectedEntityId('all') }}>
+            Consolidado
+          </Pill>
+          <Pill active={selectedOperation === 'organic'} onClick={() => { setSelectedOperation('organic'); setSelectedEntityId('all') }}>
+            Orgânico (OFM)
+          </Pill>
+          <Pill active={selectedOperation === 'paid'} onClick={() => { setSelectedOperation('paid'); setSelectedEntityId('all') }}>
+            Tráfego Pago
+          </Pill>
+        </div>
+
+        <div className="w-px h-5 bg-slate-200 dark:bg-[#22242D]" />
+
+        {/* Entity select */}
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-medium text-slate-400 select-none">Filtrar por:</span>
+          <select
+            value={selectedEntityId}
+            onChange={(e) => setSelectedEntityId(e.target.value)}
+            className="h-8 pl-2.5 pr-7 rounded-lg border border-slate-200 dark:border-[#22242D] bg-slate-50 dark:bg-[#16171D] text-[11px] font-medium text-slate-800 dark:text-white cursor-pointer focus:outline-none focus:border-indigo-500 appearance-none"
+            style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%236B7280\' stroke-width=\'2\'%3E%3Cpath d=\'M6 9l6 6 6-6\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'calc(100% - 8px) center' }}
+          >
+            <option value="all">
+              {selectedOperation === 'organic' ? 'Todas as Modelos' : selectedOperation === 'paid' ? 'Todas as BMs' : 'Todos'}
+            </option>
+            {(selectedOperation === 'all' || selectedOperation === 'organic') && (
+              <optgroup label="Modelos OFM">
+                {models.map((m) => <option key={m.id} value={m.id}>{m.nome}</option>)}
+              </optgroup>
+            )}
+            {(selectedOperation === 'all' || selectedOperation === 'paid') && (
+              <optgroup label="BMs / Perfis">
+                {paidProfiles.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}
+              </optgroup>
+            )}
+          </select>
+
+          {hasFilter && (
+            <button
+              type="button"
+              onClick={() => { setSelectedOperation('all'); setSelectedEntityId('all') }}
+              className="h-8 px-2.5 rounded-lg text-[11px] font-medium text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors cursor-pointer"
+            >
+              × Limpar
+            </button>
+          )}
+        </div>
+
+        {/* Quick nav */}
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            type="button"
             onClick={() => navigate('/organico')}
-            className="text-xs h-8 border-slate-200 dark:border-[#1E2025]"
+            className="h-8 px-3 rounded-lg border border-slate-200 dark:border-[#22242D] bg-white dark:bg-[#16171D] text-[11px] font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1E2028] transition-colors cursor-pointer"
           >
-            Lançamentos Orgânico
-          </Button>
-
-          <Button
-            variant="default"
-            size="sm"
+            Orgânico
+          </button>
+          <button
+            type="button"
             onClick={() => navigate('/pago')}
-            className="text-xs h-8"
+            className="h-8 px-3 rounded-lg bg-indigo-600 text-[11px] font-medium text-white hover:bg-indigo-700 transition-colors cursor-pointer"
           >
-            Lançamentos Pago
-          </Button>
+            Tráfego Pago
+          </button>
         </div>
       </div>
 
-      {/* 2. Barra de Filtros Completa: Operação e Conta / Modelo / BM */}
-      <div className="rounded-2xl border border-slate-200/90 dark:border-[#1E2025] bg-white dark:bg-[#121316] p-4 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          {/* Seletor de Tipo de Operação */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 mr-1 select-none">
-              Operação:
-            </span>
-
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedOperation('all')
-                setSelectedEntityId('all')
-              }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                selectedOperation === 'all'
-                  ? 'bg-[#7C3AED] text-white shadow-xs'
-                  : 'bg-slate-100 dark:bg-[#181920] text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#22242D]'
-              }`}
-            >
-              📊 Todas as Operações
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedOperation('organic')
-                setSelectedEntityId('all')
-              }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                selectedOperation === 'organic'
-                  ? 'bg-[#7C3AED] text-white shadow-xs'
-                  : 'bg-slate-100 dark:bg-[#181920] text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#22242D]'
-              }`}
-            >
-              🌸 Tráfego Orgânico (OFM)
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedOperation('paid')
-                setSelectedEntityId('all')
-              }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                selectedOperation === 'paid'
-                  ? 'bg-[#7C3AED] text-white shadow-xs'
-                  : 'bg-slate-100 dark:bg-[#181920] text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#22242D]'
-              }`}
-            >
-              ⚡ Tráfego Pago (Ads & BMs)
-            </button>
-          </div>
-
-          {/* Seletor Específico de Conta / Modelo / BM */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 select-none">
-              Filtrar por:
-            </span>
-
-            <select
-              value={selectedEntityId}
-              onChange={(e) => setSelectedEntityId(e.target.value)}
-              className="h-8.5 px-3 rounded-lg border border-slate-200 dark:border-[#22242D] bg-slate-50 dark:bg-[#181920] text-xs font-semibold text-slate-900 dark:text-white cursor-pointer focus:outline-none focus:border-[#7C3AED]"
-            >
-              <option value="all">
-                {selectedOperation === 'organic'
-                  ? 'Todas as Modelos OFM'
-                  : selectedOperation === 'paid'
-                  ? 'Todas as BMs / Perfis'
-                  : 'Todos os Perfis & Modelos'}
-              </option>
-
-              {/* Opções de Modelos Orgânicas */}
-              {(selectedOperation === 'all' || selectedOperation === 'organic') && (
-                <optgroup label="Modelos OFM (Orgânico)">
-                  {models.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.nome}
-                    </option>
-                  ))}
-                </optgroup>
-              )}
-
-              {/* Opções de Perfis / BMs Pagos */}
-              {(selectedOperation === 'all' || selectedOperation === 'paid') && (
-                <optgroup label="BMs / Perfis (Tráfego Pago)">
-                  {paidProfiles.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.nome}
-                    </option>
-                  ))}
-                </optgroup>
-              )}
-            </select>
-
-            {/* Botão de Reset quando filtro está ativo */}
-            {(selectedOperation !== 'all' || selectedEntityId !== 'all') && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedOperation('all')
-                  setSelectedEntityId('all')
-                }}
-                className="h-8.5 px-2.5 rounded-lg text-xs font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
-                title="Limpar filtros e voltar para visão geral"
-              >
-                ✕ Limpar
-              </button>
-            )}
-          </div>
-        </div>
+      {/* ── KPI CARDS — exactly like the reference image ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <KpiCard
+          label="Faturamento Bruto"
+          value={formatCurrency(totalFaturamento)}
+          delta={selectedOperation === 'all' ? 'Consolidado' : selectedOperation === 'organic' ? 'OFM' : 'Ads'}
+          deltaPositive={true}
+          sub={
+            selectedOperation === 'all'
+              ? `${formatCurrency(organicSummary.totalFaturamento)} orgânico · ${formatCurrency(paidSummary.totalFaturamento)} ads`
+              : selectedOperation === 'organic'
+              ? 'Receita bruta das redes sociais das modelos'
+              : 'Receita bruta das campanhas de anúncios'
+          }
+        />
+        <KpiCard
+          label="Custos Operacionais"
+          value={formatCurrency(totalGastos)}
+          delta={selectedOperation === 'paid' ? `ROAS ${roasMedio.toFixed(2)}×` : `${((totalGastos / Math.max(totalFaturamento, 1)) * 100).toFixed(0)}% do fat.`}
+          deltaPositive={false}
+          sub={
+            selectedOperation === 'paid'
+              ? `ROI: ${formatPercent(paidSummary.roiGeralPercent || 0)}`
+              : `${organicSummary.totalContasRepostas || 0} contas repostas · ${formatCurrency(paidSummary.totalGastos)} em Ads`
+          }
+        />
+        <KpiCard
+          label="Lucro Líquido Real"
+          value={formatCurrency(totalLucro)}
+          delta={`${margemGeral >= 0 ? '+' : ''}${margemGeral.toFixed(1)}% margem`}
+          deltaPositive={totalLucro >= 0}
+          sub="Receita líquida após dedução total de custos"
+        />
+        <KpiCard
+          label="Sua Hora Real Média"
+          value={`${formatCurrency(mediaRealHoraGeral)}/h`}
+          delta="Ponderada"
+          deltaPositive={true}
+          sub={`${formatHours(totalHoras)} dedicadas no período`}
+          accent={true}
+        />
       </div>
 
-      {/* 3. Top 4 Cards de Métricas Principais (Calculados dinamicamente com base no filtro) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: Faturamento */}
-        <div className="rounded-2xl border border-slate-200/90 dark:border-[#1E2025] bg-white dark:bg-[#121316] p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-              Faturamento Bruto
-            </span>
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-purple-50 dark:bg-[#7C3AED]/20 text-[#7C3AED] dark:text-[#C4B5FD]">
-              {selectedOperation === 'all' ? 'Consolidado' : selectedOperation === 'organic' ? 'Orgânico' : 'Tráfego Pago'}
-            </span>
-          </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white font-mono tabular-nums">
-            {formatCurrency(totalFaturamento)}
-          </div>
-          <p className="text-[11px] text-slate-400 mt-2">
-            {selectedOperation === 'all' ? (
-              <>
-                {formatCurrency(organicSummary.totalFaturamento)} orgânico ·{' '}
-                {formatCurrency(paidSummary.totalFaturamento)} ads
-              </>
-            ) : selectedOperation === 'organic' ? (
-              'Receita gerada pelas redes sociais das modelos'
-            ) : (
-              'Receita bruta das campanhas de tráfego pago'
-            )}
-          </p>
-        </div>
-
-        {/* Card 2: Custos & Contingência */}
-        <div className="rounded-2xl border border-slate-200/90 dark:border-[#1E2025] bg-white dark:bg-[#121316] p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-              Custos Operacionais
-            </span>
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-500/15 text-rose-500">
-              {selectedOperation === 'paid' ? 'Gasto em Ads' : 'Contingência'}
-            </span>
-          </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-rose-500 font-mono tabular-nums">
-            {formatCurrency(totalGastos)}
-          </div>
-          <p className="text-[11px] text-slate-400 mt-2">
-            {selectedOperation === 'paid' ? (
-              <>ROAS Médio: {(paidSummary.mediaRoas || 0).toFixed(2)}x · ROI: {formatPercent(paidSummary.roiGeralPercent || 0)}</>
-            ) : (
-              <>{organicSummary.totalContasRepostas || 0} contas repostas · {formatCurrency(paidSummary.totalGastos)} em Ads</>
-            )}
-          </p>
-        </div>
-
-        {/* Card 3: Lucro Líquido Real */}
-        <div className="rounded-2xl border border-slate-200/90 dark:border-[#1E2025] bg-white dark:bg-[#121316] p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-              Lucro Líquido Real
-            </span>
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-500/15 text-emerald-500 font-mono">
-              +{margemGeral.toFixed(0)}%
-            </span>
-          </div>
-          <div
-            className={`text-2xl sm:text-3xl font-extrabold font-mono tabular-nums ${
-              totalLucro >= 0 ? 'text-emerald-500' : 'text-rose-500'
-            }`}
-          >
-            {formatCurrency(totalLucro)}
-          </div>
-          <p className="text-[11px] text-slate-400 mt-2">
-            Receita líquida após dedução total de custos e contingência
-          </p>
-        </div>
-
-        {/* Card 4: Sua Hora Média Ponderada (⭐ KPI Principal) */}
-        <div className="rounded-2xl border border-purple-200/70 dark:border-[#7C3AED]/30 bg-purple-50/30 dark:bg-[#7C3AED]/10 p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-[#7C3AED] dark:text-[#C4B5FD]">
-              Sua Hora Real Média
-            </span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#7C3AED] text-white">
-              Ponderada
-            </span>
-          </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-[#7C3AED] dark:text-[#C4B5FD] font-mono tabular-nums">
-            {formatCurrency(mediaRealHoraGeral)}
-            <span className="text-sm font-normal text-slate-400 ml-1">/h</span>
-          </div>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2">
-            {formatHours(totalHoras)} dedicadas no período filtrado
-          </p>
-        </div>
-      </div>
-
-      {/* 4. Gráficos Visuais Centrais (Desempenho Diário + Atribuição Donut) */}
+      {/* ── MAIN CHARTS ROW ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2">
           <DashboardPerformanceChart data={dailyPerformanceData} />
         </div>
-
         <div className="lg:col-span-1">
           <DashboardChannelDonut items={channelShares} totalFaturamento={totalFaturamento} />
         </div>
       </div>
 
-      {/* 5. Funil de Retenção de Eficiência Financeira e Curva da Hora */}
+      {/* ── FUNNEL + HOUR GROWTH ── */}
       <DashboardEfficiencyFunnel
         totalFaturamento={totalFaturamento}
         totalGastos={totalGastos}
@@ -545,219 +434,164 @@ export default function DashboardPage() {
         horasPago={paidSummary.totalHoras}
       />
 
-      {/* 6. Tabela Completa de Ranking em Largura Total (Sem a caixa de diagnóstico inútil) */}
-      <div className="w-full rounded-2xl border border-slate-200/90 dark:border-[#1E2025] bg-white dark:bg-[#121316] p-5 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+      {/* ── RANKING TABLE — full width, like "Top campaigns" in the reference ── */}
+      <div className="rounded-2xl border border-slate-200 dark:border-[#1E2025] bg-white dark:bg-[#0E0F12] shadow-sm overflow-hidden">
+        {/* Table header */}
+        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 border-b border-slate-100 dark:border-[#1A1C24]">
           <div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">
-              {activeRankingTab === 'models'
-                ? 'Ranking de Retorno das Modelos OFM'
-                : 'Ranking de Retorno das BMs (Tráfego Pago)'}
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+              {activeRankingTab === 'models' ? 'Top Modelos OFM' : 'Top Perfis de Tráfego Pago'}
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Ordenadas pelo <strong>Retorno Real da sua Hora (R$/h)</strong> e eficiência
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              Ordenadas pelo <strong>Retorno Real da sua Hora (R$/h)</strong>
             </p>
           </div>
 
-          {/* Abas para alternar ranking de modelos ou BMs quando em visão consolidada */}
           <div className="flex items-center gap-2">
             {selectedOperation === 'all' && (
-              <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-[#181920] border border-slate-200 dark:border-[#22242D]">
+              <div className="flex items-center p-0.5 gap-0.5 rounded-lg bg-slate-100 dark:bg-[#16171D] border border-slate-200 dark:border-[#22242D]">
                 <button
                   type="button"
                   onClick={() => setActiveRankingTab('models')}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                  className={`px-3 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
                     activeRankingTab === 'models'
-                      ? 'bg-white dark:bg-[#121316] text-[#7C3AED] dark:text-white shadow-xs'
-                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                      ? 'bg-white dark:bg-[#0E0F12] text-slate-900 dark:text-white shadow-sm'
+                      : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                   }`}
                 >
-                  Modelos OFM ({models.length})
+                  Modelos ({models.length})
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveRankingTab('profiles')}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                  className={`px-3 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
                     activeRankingTab === 'profiles'
-                      ? 'bg-white dark:bg-[#121316] text-[#7C3AED] dark:text-white shadow-xs'
-                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                      ? 'bg-white dark:bg-[#0E0F12] text-slate-900 dark:text-white shadow-sm'
+                      : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                   }`}
                 >
-                  BMs / Perfis ({paidProfiles.length})
+                  BMs ({paidProfiles.length})
                 </button>
               </div>
             )}
-
-            <Button
-              variant="outline"
-              size="sm"
+            <button
+              type="button"
               onClick={() => navigate(activeRankingTab === 'models' ? '/organico' : '/pago')}
-              className="text-xs h-8 border-slate-200 dark:border-[#1E2025]"
+              className="text-[11px] font-medium text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
             >
-              Abrir Operação Completa
-            </Button>
+              Ver tudo →
+            </button>
           </div>
         </div>
 
-        {/* Tabela do Ranking de Modelos OFM */}
+        {/* Models table */}
         {activeRankingTab === 'models' && (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full text-left text-[11px] border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 dark:border-[#1E2025] bg-slate-50/80 dark:bg-[#16171D] text-slate-500 dark:text-slate-400 font-medium text-[11px] select-none">
-                  <th className="py-2.5 px-3 w-16 text-center">Posição</th>
-                  <th className="py-2.5 px-3">Modelo OFM</th>
+                <tr className="bg-slate-50 dark:bg-[#0B0C0E] text-slate-400 dark:text-slate-500 font-medium text-[10px] select-none border-b border-slate-100 dark:border-[#1A1C24]">
+                  <th className="py-2.5 px-4 w-12 text-center">#</th>
+                  <th className="py-2.5 px-3">Modelo</th>
                   <th className="py-2.5 px-3 text-right">Faturamento</th>
                   <th className="py-2.5 px-3 text-right">Contingência</th>
                   <th className="py-2.5 px-3 text-center">Contas Rep.</th>
-                  <th className="py-2.5 px-3 text-right">Lucro Líquido</th>
+                  <th className="py-2.5 px-3 text-right">Lucro</th>
                   <th className="py-2.5 px-3 text-right">Horas</th>
-                  <th className="py-2.5 px-4 text-right font-bold text-[#7C3AED] dark:text-[#A78BFA]">
-                    Sua Hora (R$/h)
-                  </th>
+                  <th className="py-2.5 px-4 text-right text-indigo-500">R$/h</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200/70 dark:divide-[#1E2025]">
+              <tbody>
                 {modelRanking.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-6 text-center text-slate-400 text-xs">
-                      Nenhuma modelo cadastrada no momento.
+                    <td colSpan={8} className="py-8 text-center text-slate-400 text-[11px]">
+                      Nenhuma modelo cadastrada.
                     </td>
                   </tr>
                 ) : (
-                  modelRanking.map((item, index) => {
-                    const isEven = index % 2 === 0
-                    return (
-                      <tr
-                        key={item.model.id}
-                        className={`h-8 transition-colors cursor-pointer hover:bg-purple-50/70 dark:hover:bg-[#252834] ${
-                          isEven ? 'bg-white dark:bg-[#0E0F12]' : 'bg-[#F1F5F9] dark:bg-[#1A1C24]'
-                        }`}
-                        onClick={() => navigate('/organico')}
-                      >
-                        <td className="py-1 px-3 text-center font-mono font-bold text-xs text-slate-400">
-                          {index === 0 ? '🥇 1º' : index === 1 ? '🥈 2º' : index === 2 ? '🥉 3º' : `${index + 1}º`}
-                        </td>
-
-                        <td className="py-1 px-3 font-semibold text-slate-900 dark:text-white text-xs">
-                          {item.model.nome}
-                        </td>
-
-                        <td className="py-1 px-3 text-right font-mono tabular-nums text-xs">
-                          {formatCurrency(item.faturamento)}
-                        </td>
-
-                        <td className="py-1 px-3 text-right font-mono tabular-nums text-rose-500 text-xs">
-                          {formatCurrency(item.contingencia)}
-                        </td>
-
-                        <td className="py-1 px-3 text-center font-mono text-slate-400 text-xs">
-                          {item.contasRepostas}
-                        </td>
-
-                        <td
-                          className={`py-1 px-3 text-right font-mono font-semibold tabular-nums text-xs ${
-                            item.lucro >= 0 ? 'text-emerald-500' : 'text-rose-500'
-                          }`}
-                        >
-                          {formatCurrency(item.lucro)}
-                        </td>
-
-                        <td className="py-1 px-3 text-right font-mono text-slate-400 text-xs">
-                          {formatHours(item.horas)}
-                        </td>
-
-                        <td className="py-1 px-4 text-right font-mono font-bold text-xs tabular-nums text-[#7C3AED] dark:text-[#C4B5FD]">
-                          {item.horas > 0 ? `${formatCurrency(item.valorHora)}/h` : '—'}
-                        </td>
-                      </tr>
-                    )
-                  })
+                  modelRanking.map((item, idx) => (
+                    <tr
+                      key={item.model.id}
+                      onClick={() => navigate('/organico')}
+                      className={`h-9 cursor-pointer transition-colors hover:bg-indigo-50/70 dark:hover:bg-indigo-500/5 ${
+                        idx % 2 === 0
+                          ? 'bg-white dark:bg-[#0E0F12]'
+                          : 'bg-slate-50/60 dark:bg-[#16171D]'
+                      } border-b border-slate-100 dark:border-[#1A1C24] last:border-none`}
+                    >
+                      <td className="py-1 px-4 text-center text-slate-400 font-mono">
+                        {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}`}
+                      </td>
+                      <td className="py-1 px-3 font-semibold text-slate-900 dark:text-white">{item.model.nome}</td>
+                      <td className="py-1 px-3 text-right font-mono tabular-nums text-slate-700 dark:text-slate-300">{formatCurrency(item.faturamento)}</td>
+                      <td className="py-1 px-3 text-right font-mono tabular-nums text-rose-500">{formatCurrency(item.contingencia)}</td>
+                      <td className="py-1 px-3 text-center font-mono text-slate-400">{item.contasRepostas}</td>
+                      <td className={`py-1 px-3 text-right font-mono font-semibold tabular-nums ${item.lucro >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        {formatCurrency(item.lucro)}
+                      </td>
+                      <td className="py-1 px-3 text-right font-mono text-slate-400">{formatHours(item.horas)}</td>
+                      <td className="py-1 px-4 text-right font-mono font-bold tabular-nums text-indigo-600 dark:text-indigo-400">
+                        {item.horas > 0 ? `${formatCurrency(item.valorHora)}/h` : '—'}
+                      </td>
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>
           </div>
         )}
 
-        {/* Tabela do Ranking de BMs / Perfis de Tráfego Pago */}
+        {/* Profiles table */}
         {activeRankingTab === 'profiles' && (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full text-left text-[11px] border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 dark:border-[#1E2025] bg-slate-50/80 dark:bg-[#16171D] text-slate-500 dark:text-slate-400 font-medium text-[11px] select-none">
-                  <th className="py-2.5 px-3 w-16 text-center">Posição</th>
+                <tr className="bg-slate-50 dark:bg-[#0B0C0E] text-slate-400 dark:text-slate-500 font-medium text-[10px] select-none border-b border-slate-100 dark:border-[#1A1C24]">
+                  <th className="py-2.5 px-4 w-12 text-center">#</th>
                   <th className="py-2.5 px-3">Perfil / BM</th>
                   <th className="py-2.5 px-3 text-right">Faturamento</th>
-                  <th className="py-2.5 px-3 text-right">Gasto em Ads</th>
-                  <th className="py-2.5 px-3 text-right">Lucro Líquido</th>
+                  <th className="py-2.5 px-3 text-right">Gasto Ads</th>
+                  <th className="py-2.5 px-3 text-right">Lucro</th>
                   <th className="py-2.5 px-3 text-right">ROAS</th>
                   <th className="py-2.5 px-3 text-right">ROI %</th>
                   <th className="py-2.5 px-3 text-right">Horas</th>
-                  <th className="py-2.5 px-4 text-right font-bold text-[#7C3AED] dark:text-[#A78BFA]">
-                    Sua Hora (R$/h)
-                  </th>
+                  <th className="py-2.5 px-4 text-right text-indigo-500">R$/h</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200/70 dark:divide-[#1E2025]">
+              <tbody>
                 {profileRanking.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="py-6 text-center text-slate-400 text-xs">
-                      Nenhum perfil ou BM cadastrado no momento.
+                    <td colSpan={9} className="py-8 text-center text-slate-400 text-[11px]">
+                      Nenhum perfil ou BM cadastrado.
                     </td>
                   </tr>
                 ) : (
-                  profileRanking.map((item, index) => {
-                    const isEven = index % 2 === 0
-                    return (
-                      <tr
-                        key={item.profile.id}
-                        className={`h-8 transition-colors cursor-pointer hover:bg-purple-50/70 dark:hover:bg-[#252834] ${
-                          isEven ? 'bg-white dark:bg-[#0E0F12]' : 'bg-[#F1F5F9] dark:bg-[#1A1C24]'
-                        }`}
-                        onClick={() => navigate('/pago')}
-                      >
-                        <td className="py-1 px-3 text-center font-mono font-bold text-xs text-slate-400">
-                          {index === 0 ? '🥇 1º' : index === 1 ? '🥈 2º' : index === 2 ? '🥉 3º' : `${index + 1}º`}
-                        </td>
-
-                        <td className="py-1 px-3 font-semibold text-slate-900 dark:text-white text-xs">
-                          {item.profile.nome}
-                        </td>
-
-                        <td className="py-1 px-3 text-right font-mono tabular-nums text-xs">
-                          {formatCurrency(item.faturamento)}
-                        </td>
-
-                        <td className="py-1 px-3 text-right font-mono tabular-nums text-rose-500 text-xs">
-                          {formatCurrency(item.gastoAds)}
-                        </td>
-
-                        <td
-                          className={`py-1 px-3 text-right font-mono font-semibold tabular-nums text-xs ${
-                            item.lucro >= 0 ? 'text-emerald-500' : 'text-rose-500'
-                          }`}
-                        >
-                          {formatCurrency(item.lucro)}
-                        </td>
-
-                        <td className="py-1 px-3 text-right font-mono text-xs">
-                          {item.roas > 0 ? `${item.roas.toFixed(2)}x` : '—'}
-                        </td>
-
-                        <td className="py-1 px-3 text-right font-mono text-xs text-slate-500 dark:text-slate-400">
-                          {item.roiPercent !== 0 ? formatPercent(item.roiPercent) : '—'}
-                        </td>
-
-                        <td className="py-1 px-3 text-right font-mono text-slate-400 text-xs">
-                          {formatHours(item.horas)}
-                        </td>
-
-                        <td className="py-1 px-4 text-right font-mono font-bold text-xs tabular-nums text-[#7C3AED] dark:text-[#C4B5FD]">
-                          {item.horas > 0 ? `${formatCurrency(item.valorHora)}/h` : '—'}
-                        </td>
-                      </tr>
-                    )
-                  })
+                  profileRanking.map((item, idx) => (
+                    <tr
+                      key={item.profile.id}
+                      onClick={() => navigate('/pago')}
+                      className={`h-9 cursor-pointer transition-colors hover:bg-indigo-50/70 dark:hover:bg-indigo-500/5 ${
+                        idx % 2 === 0
+                          ? 'bg-white dark:bg-[#0E0F12]'
+                          : 'bg-slate-50/60 dark:bg-[#16171D]'
+                      } border-b border-slate-100 dark:border-[#1A1C24] last:border-none`}
+                    >
+                      <td className="py-1 px-4 text-center text-slate-400 font-mono">
+                        {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}`}
+                      </td>
+                      <td className="py-1 px-3 font-semibold text-slate-900 dark:text-white">{item.profile.nome}</td>
+                      <td className="py-1 px-3 text-right font-mono tabular-nums text-slate-700 dark:text-slate-300">{formatCurrency(item.faturamento)}</td>
+                      <td className="py-1 px-3 text-right font-mono tabular-nums text-rose-500">{formatCurrency(item.gastoAds)}</td>
+                      <td className={`py-1 px-3 text-right font-mono font-semibold tabular-nums ${item.lucro >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        {formatCurrency(item.lucro)}
+                      </td>
+                      <td className="py-1 px-3 text-right font-mono text-slate-600 dark:text-slate-300">{item.roas > 0 ? `${item.roas.toFixed(2)}×` : '—'}</td>
+                      <td className="py-1 px-3 text-right font-mono text-slate-400">{item.roiPercent !== 0 ? formatPercent(item.roiPercent) : '—'}</td>
+                      <td className="py-1 px-3 text-right font-mono text-slate-400">{formatHours(item.horas)}</td>
+                      <td className="py-1 px-4 text-right font-mono font-bold tabular-nums text-indigo-600 dark:text-indigo-400">
+                        {item.horas > 0 ? `${formatCurrency(item.valorHora)}/h` : '—'}
+                      </td>
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>
