@@ -18,15 +18,15 @@ jobs:
         include:
           - platform: 'macos-latest'
             target: 'universal-apple-darwin'
-            args: '--target universal-apple-darwin'
+            args: '--target universal-apple-darwin --verbose'
             name: 'macOS'
           - platform: 'ubuntu-22.04'
             target: 'x86_64-unknown-linux-gnu'
-            args: ''
+            args: '--verbose'
             name: 'Linux'
           - platform: 'windows-latest'
             target: 'x86_64-pc-windows-msvc'
-            args: ''
+            args: '--verbose'
             name: 'Windows'
 
     runs-on: ${{ matrix.platform }}
@@ -59,7 +59,7 @@ jobs:
       - name: Install Node dependencies
         run: npm ci
 
-      - name: Build Tauri App
+      - name: Build Tauri App (Verbose com Publicação Oficial)
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -73,15 +73,26 @@ jobs:
             - **Linux**: Pacotes `.deb` e executáveis portáveis `.AppImage`
             - **Windows**: Instalador `.msi` e executável `.exe`
             - **macOS**: Imagem de disco `.dmg` e bundle `.app` (Universal Apple Silicon & Intel)
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+
+      - name: Listar Arquivos Compilados no Log
+        shell: bash
+        run: |
+          echo "========================================================"
+          echo "       LISTAGEM DE ARQUIVOS GERADOS PELO BUILD          "
+          echo "========================================================"
+          find src-tauri/target -type f \( -name "*.deb" -o -name "*.AppImage" -o -name "*.exe" -o -name "*.msi" -o -name "*.dmg" \) -exec ls -lh {} + || true
 
       - name: Upload Artifacts (Download direto na aba Actions)
         uses: actions/upload-artifact@v4
         with:
           name: analize-dados-${{ matrix.name }}
           path: |
-            src-tauri/target/release/bundle/
-            src-tauri/target/universal-apple-darwin/release/bundle/
+            src-tauri/target/**/*.deb
+            src-tauri/target/**/*.AppImage
+            src-tauri/target/**/*.msi
+            src-tauri/target/**/*.exe
+            src-tauri/target/**/*.dmg
           if-no-files-found: warn
