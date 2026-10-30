@@ -206,59 +206,64 @@ export default function DashboardPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 dark:border-[#1E2025] text-slate-400 font-medium">
-                  <th className="py-3 px-4 w-16 text-center">Posição</th>
-                  <th className="py-3 px-4">Modelo OFM</th>
-                  <th className="py-3 px-4 text-right">Faturamento</th>
-                  <th className="py-3 px-4 text-right">Contingência</th>
-                  <th className="py-3 px-4 text-center">Contas Rep.</th>
-                  <th className="py-3 px-4 text-right">Lucro Líquido</th>
-                  <th className="py-3 px-4 text-right">Horas</th>
-                  <th className="py-3 px-5 text-right font-semibold text-[#7C3AED] dark:text-[#A78BFA]">
+                <tr className="border-b border-slate-200 dark:border-[#1E2025] bg-slate-50/80 dark:bg-[#16171D] text-slate-500 dark:text-slate-400 font-medium select-none text-[11px]">
+                  <th className="py-1.5 px-2.5 w-14 text-center">Posição</th>
+                  <th className="py-1.5 px-3">Modelo OFM</th>
+                  <th className="py-1.5 px-2.5 text-right">Faturamento</th>
+                  <th className="py-1.5 px-2.5 text-right">Contingência</th>
+                  <th className="py-1.5 px-2 text-center">Contas Rep.</th>
+                  <th className="py-1.5 px-2.5 text-right">Lucro Líquido</th>
+                  <th className="py-1.5 px-2 text-right">Horas</th>
+                  <th className="py-1.5 px-3 text-right font-semibold text-[#7C3AED] dark:text-[#A78BFA]">
                     Sua Hora (R$/h)
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-[#1A1C22]">
-                {modelRanking.map((item, index) => (
-                  <tr
-                    key={item.model.id}
-                    className="hover:bg-slate-50 dark:hover:bg-[#18191E] transition-colors cursor-pointer"
-                    onClick={() => navigate('/organico')}
-                  >
-                    <td className="py-3.5 px-4 text-center font-mono text-slate-400">
-                      {index + 1}º
-                    </td>
+              <tbody className="divide-y divide-slate-200/70 dark:divide-[#1E2025]">
+                {modelRanking.map((item, index) => {
+                  const isEven = index % 2 === 0
+                  return (
+                    <tr
+                      key={item.model.id}
+                      className={`h-7 transition-colors cursor-pointer hover:bg-purple-50/70 dark:hover:bg-[#252834] ${
+                        isEven ? 'bg-white dark:bg-[#0E0F12]' : 'bg-[#F1F5F9] dark:bg-[#1A1C24]'
+                      }`}
+                      onClick={() => navigate('/organico')}
+                    >
+                      <td className="py-1 px-2.5 text-center font-mono text-slate-400 text-xs">
+                        {index + 1}º
+                      </td>
 
-                    <td className="py-3.5 px-4 font-medium text-slate-900 dark:text-white">
-                      {item.model.nome}
-                    </td>
+                      <td className="py-1 px-3 font-medium text-slate-900 dark:text-white text-xs">
+                        {item.model.nome}
+                      </td>
 
-                    <td className="py-3.5 px-4 text-right font-mono tabular-nums">
-                      {formatCurrency(item.faturamento)}
-                    </td>
+                      <td className="py-1 px-2.5 text-right font-mono tabular-nums text-xs">
+                        {formatCurrency(item.faturamento)}
+                      </td>
 
-                    <td className="py-3.5 px-4 text-right font-mono tabular-nums text-rose-500">
-                      {formatCurrency(item.contingencia)}
-                    </td>
+                      <td className="py-1 px-2.5 text-right font-mono tabular-nums text-rose-500 text-xs">
+                        {formatCurrency(item.contingencia)}
+                      </td>
 
-                    <td className="py-3.5 px-4 text-center font-mono text-slate-400">
-                      {item.contasRepostas}
-                    </td>
+                      <td className="py-1 px-2 text-center font-mono text-slate-400 text-xs">
+                        {item.contasRepostas}
+                      </td>
 
-                    <td className={`py-3.5 px-4 text-right font-mono font-medium tabular-nums ${item.lucro >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                      {formatCurrency(item.lucro)}
-                    </td>
+                      <td className={`py-1 px-2.5 text-right font-mono font-medium tabular-nums text-xs ${item.lucro >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        {formatCurrency(item.lucro)}
+                      </td>
 
-                    <td className="py-3.5 px-4 text-right font-mono text-slate-400">
-                      {formatHours(item.horas)}
-                    </td>
+                      <td className="py-1 px-2 text-right font-mono text-slate-400 text-xs">
+                        {formatHours(item.horas)}
+                      </td>
 
-                    <td className="py-3.5 px-5 text-right font-mono font-semibold tabular-nums text-[#7C3AED] dark:text-[#C4B5FD]">
-                      {item.horas > 0 ? `${formatCurrency(item.valorHora)}/h` : '—'}
-                    </td>
-                  </tr>
-                ))}
+                      <td className="py-1 px-3 text-right font-mono font-semibold tabular-nums text-xs text-[#7C3AED] dark:text-[#C4B5FD]">
+                        {item.horas > 0 ? `${formatCurrency(item.valorHora)}/h` : '—'}
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>

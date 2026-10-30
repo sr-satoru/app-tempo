@@ -64,33 +64,33 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-left text-xs">
           <thead>
-            <tr className="border-b border-slate-200 dark:border-[#1E2025] bg-slate-50/60 dark:bg-[#16171D] text-slate-500 dark:text-slate-400 font-medium">
-              <th className="py-3.5 px-4 w-20 text-center">Data</th>
-              <th className="py-3.5 px-3 w-28">Horas Trab.</th>
-              <th className="py-3.5 px-3 w-36">Faturamento</th>
-              <th className="py-3.5 px-3 w-36">Canal / Rede</th>
-              <th className="py-3.5 px-3 w-36">Reposição Contas</th>
-              <th className="py-3.5 px-3 w-28 text-center">Contas Rep.</th>
-              <th className="py-3.5 px-3 w-36">Proxies & Chips</th>
-              <th className="py-3.5 px-3 min-w-[200px]">Observações</th>
+            <tr className="border-b border-slate-200 dark:border-[#1E2025] bg-slate-50/80 dark:bg-[#16171D] text-slate-500 dark:text-slate-400 font-medium select-none text-[11px]">
+              <th className="py-1.5 px-2 w-16 text-center">Data</th>
+              <th className="py-1.5 px-2 w-20 text-right">Horas Trab.</th>
+              <th className="py-1.5 px-2 w-28 text-right">Faturamento</th>
+              <th className="py-1.5 px-2 w-24">Canal / Rede</th>
+              <th className="py-1.5 px-2 w-28 text-right">Reposição Contas</th>
+              <th className="py-1.5 px-1.5 w-16 text-center">Contas Rep.</th>
+              <th className="py-1.5 px-2 w-28 text-right">Proxies & Chips</th>
+              <th className="py-1.5 px-2 min-w-[160px]">Observações</th>
 
               {/* Colunas de Resultado à Direita com Separação Limpa */}
-              <th className="py-3.5 px-4 w-32 text-right border-l border-slate-200 dark:border-[#1E2025] text-slate-500 dark:text-slate-400 font-medium">
+              <th className="py-1.5 px-2.5 w-24 text-right border-l border-slate-200 dark:border-[#1E2025]">
                 Contingência
               </th>
-              <th className="py-3.5 px-4 w-28 text-right text-slate-500 dark:text-slate-400 font-medium">
+              <th className="py-1.5 px-2 w-20 text-right">
                 Méd/Conta
               </th>
-              <th className="py-3.5 px-4 w-36 text-right text-slate-500 dark:text-slate-400 font-medium">
+              <th className="py-1.5 px-2.5 w-28 text-right">
                 Lucro Líquido
               </th>
-              <th className="py-3.5 px-5 w-40 text-right text-[#7C3AED] dark:text-[#A78BFA] font-semibold">
+              <th className="py-1.5 px-3 w-28 text-right text-[#7C3AED] dark:text-[#A78BFA] font-semibold">
                 Sua Hora (R$/h)
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-[#1A1C22]">
-            {days.map((day) => {
+          <tbody className="divide-y divide-slate-200/70 dark:divide-[#1E2025]">
+            {days.map((day, index) => {
               const entry = entriesMap.get(day.dateString) || {
                 id: `${day.dateString}_${selectedModelId}`,
                 data: day.dateString,
@@ -110,21 +110,22 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                 entry.horasTrabalhadas > 0 ||
                 entry.faturamento > 0 ||
                 calc.totalContingencia > 0
+              const isEven = index % 2 === 0
 
               return (
                 <tr
                   key={day.dateString}
-                  className={`transition-colors hover:bg-slate-50/60 dark:hover:bg-[#16171D] ${
+                  className={`h-7 transition-colors hover:bg-purple-50/70 dark:hover:bg-[#252834] ${
                     isToday
-                      ? 'bg-purple-50/30 dark:bg-[#7C3AED]/5 font-medium'
-                      : day.isWeekend
-                      ? 'bg-slate-50/20 dark:bg-[#101114]'
-                      : ''
+                      ? 'bg-purple-100/90 dark:bg-[#7C3AED]/25 font-medium'
+                      : isEven
+                      ? 'bg-white dark:bg-[#0E0F12]'
+                      : 'bg-[#F1F5F9] dark:bg-[#1A1C24]'
                   }`}
                 >
                   {/* Data & Dia da Semana */}
-                  <td className="py-3 px-4 text-center">
-                    <div className="flex items-center justify-center gap-1.5 font-mono">
+                  <td className="py-0.5 px-1.5 text-center">
+                    <div className="flex items-center justify-center gap-1 font-mono">
                       <span
                         className={`text-xs ${
                           isToday
@@ -134,14 +135,14 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                       >
                         {String(day.dayNumber).padStart(2, '0')}
                       </span>
-                      <span className="text-[11px] text-slate-400 font-normal">
+                      <span className="text-[10px] text-slate-400 font-normal">
                         {day.dayOfWeek}
                       </span>
                     </div>
                   </td>
 
                   {/* Horas - sem scroll acidental */}
-                  <td className="py-2 px-2">
+                  <td className="p-0.5 px-1">
                     <input
                       type="number"
                       step="0.5"
@@ -152,12 +153,12 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                       onChange={(e) =>
                         handleFieldChange(day.dateString, 'horasTrabalhadas', e.target.value)
                       }
-                      className="w-full h-8 rounded-lg px-2.5 bg-slate-50/50 dark:bg-[#16171E] hover:bg-white dark:hover:bg-[#1A1C24] focus:bg-white dark:focus:bg-[#1A1C24] border border-transparent focus:border-[#7C3AED] text-slate-900 dark:text-white text-xs text-right font-mono transition-colors"
+                      className="w-full h-6.5 rounded px-2 bg-transparent hover:bg-white dark:hover:bg-[#22242D] focus:bg-white dark:focus:bg-[#22242D] border border-transparent focus:border-[#7C3AED] text-slate-900 dark:text-white text-xs text-right font-mono transition-colors"
                     />
                   </td>
 
                   {/* Faturamento - sem scroll acidental */}
-                  <td className="py-2 px-2">
+                  <td className="p-0.5 px-1">
                     <input
                       type="number"
                       step="0.01"
@@ -168,18 +169,18 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                       onChange={(e) =>
                         handleFieldChange(day.dateString, 'faturamento', e.target.value)
                       }
-                      className="w-full h-8 rounded-lg px-2.5 bg-slate-50/50 dark:bg-[#16171E] hover:bg-white dark:hover:bg-[#1A1C24] focus:bg-white dark:focus:bg-[#1A1C24] border border-transparent focus:border-[#7C3AED] text-slate-900 dark:text-white text-xs text-right font-mono tabular-nums transition-colors"
+                      className="w-full h-6.5 rounded px-2 bg-transparent hover:bg-white dark:hover:bg-[#22242D] focus:bg-white dark:focus:bg-[#22242D] border border-transparent focus:border-[#7C3AED] text-slate-900 dark:text-white text-xs text-right font-mono tabular-nums transition-colors"
                     />
                   </td>
 
                   {/* Canal Social */}
-                  <td className="py-2 px-2">
+                  <td className="p-0.5 px-1">
                     <select
                       value={entry.canalRedeSocial || 'TikTok'}
                       onChange={(e) =>
                         handleFieldChange(day.dateString, 'canalRedeSocial', e.target.value)
                       }
-                      className="w-full h-8 rounded-lg px-2 text-xs bg-slate-50/50 dark:bg-[#16171E] hover:bg-white dark:hover:bg-[#1A1C24] border border-transparent focus:border-[#7C3AED] text-slate-700 dark:text-slate-300 cursor-pointer"
+                      className="w-full h-6.5 rounded px-1.5 text-xs bg-transparent hover:bg-white dark:hover:bg-[#22242D] border border-transparent focus:border-[#7C3AED] text-slate-700 dark:text-slate-300 cursor-pointer transition-colors"
                     >
                       {CHANNELS.map((ch) => (
                         <option key={ch} value={ch} className="bg-white dark:bg-[#16171E]">
@@ -190,7 +191,7 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                   </td>
 
                   {/* Custo Reposição Contas - sem scroll acidental */}
-                  <td className="py-2 px-2">
+                  <td className="p-0.5 px-1">
                     <input
                       type="number"
                       step="0.01"
@@ -205,12 +206,12 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                           e.target.value
                         )
                       }
-                      className="w-full h-8 rounded-lg px-2.5 bg-slate-50/50 dark:bg-[#16171E] hover:bg-white dark:hover:bg-[#1A1C24] focus:bg-white dark:focus:bg-[#1A1C24] border border-transparent focus:border-[#7C3AED] text-rose-500 text-xs text-right font-mono tabular-nums transition-colors"
+                      className="w-full h-6.5 rounded px-2 bg-transparent hover:bg-white dark:hover:bg-[#22242D] focus:bg-white dark:focus:bg-[#22242D] border border-transparent focus:border-[#7C3AED] text-rose-500 text-xs text-right font-mono tabular-nums transition-colors"
                     />
                   </td>
 
                   {/* Qtd Contas Repostas - sem scroll acidental */}
-                  <td className="py-2 px-2">
+                  <td className="p-0.5 px-1">
                     <input
                       type="number"
                       step="1"
@@ -221,12 +222,12 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                       onChange={(e) =>
                         handleFieldChange(day.dateString, 'qtdContasRepostas', e.target.value)
                       }
-                      className="w-full h-8 rounded-lg px-2 bg-slate-50/50 dark:bg-[#16171E] hover:bg-white dark:hover:bg-[#1A1C24] focus:bg-white dark:focus:bg-[#1A1C24] border border-transparent focus:border-[#7C3AED] text-slate-900 dark:text-white text-xs text-center font-mono transition-colors"
+                      className="w-full h-6.5 rounded px-1.5 bg-transparent hover:bg-white dark:hover:bg-[#22242D] focus:bg-white dark:focus:bg-[#22242D] border border-transparent focus:border-[#7C3AED] text-slate-900 dark:text-white text-xs text-center font-mono transition-colors"
                     />
                   </td>
 
                   {/* Outros Custos Contingência - sem scroll acidental */}
-                  <td className="py-2 px-2">
+                  <td className="p-0.5 px-1">
                     <input
                       type="number"
                       step="0.01"
@@ -241,12 +242,12 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                           e.target.value
                         )
                       }
-                      className="w-full h-8 rounded-lg px-2.5 bg-slate-50/50 dark:bg-[#16171E] hover:bg-white dark:hover:bg-[#1A1C24] focus:bg-white dark:focus:bg-[#1A1C24] border border-transparent focus:border-[#7C3AED] text-slate-900 dark:text-white text-xs text-right font-mono tabular-nums transition-colors"
+                      className="w-full h-6.5 rounded px-2 bg-transparent hover:bg-white dark:hover:bg-[#22242D] focus:bg-white dark:focus:bg-[#22242D] border border-transparent focus:border-[#7C3AED] text-slate-900 dark:text-white text-xs text-right font-mono tabular-nums transition-colors"
                     />
                   </td>
 
                   {/* Notas */}
-                  <td className="py-2 px-2">
+                  <td className="p-0.5 px-1">
                     <input
                       type="text"
                       placeholder="Anotações..."
@@ -254,25 +255,25 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                       onChange={(e) =>
                         handleFieldChange(day.dateString, 'observacoes', e.target.value)
                       }
-                      className="w-full h-8 rounded-lg px-2.5 bg-slate-50/50 dark:bg-[#16171E] hover:bg-white dark:hover:bg-[#1A1C24] border border-transparent focus:border-[#7C3AED] text-slate-500 dark:text-slate-400 text-xs transition-colors"
+                      className="w-full h-6.5 rounded px-2 bg-transparent hover:bg-white dark:hover:bg-[#22242D] border border-transparent focus:border-[#7C3AED] text-slate-500 dark:text-slate-400 text-xs transition-colors"
                     />
                   </td>
 
                   {/* --- Resultados Calculados --- */}
 
                   {/* Total Contingência */}
-                  <td className="py-3 px-4 text-right font-mono text-slate-500 dark:text-slate-400 border-l border-slate-200 dark:border-[#1E2025]">
+                  <td className="py-1 px-2 text-right font-mono text-xs text-slate-500 dark:text-slate-400 border-l border-slate-200 dark:border-[#1E2025]">
                     {hasActivity ? formatCurrency(calc.totalContingencia) : '—'}
                   </td>
 
                   {/* Custo Médio por Conta */}
-                  <td className="py-3 px-4 text-right font-mono text-slate-500 dark:text-slate-400">
+                  <td className="py-1 px-2 text-right font-mono text-xs text-slate-500 dark:text-slate-400">
                     {calc.custoMedioPorConta > 0 ? formatCurrency(calc.custoMedioPorConta) : '—'}
                   </td>
 
                   {/* Lucro Líquido */}
                   <td
-                    className={`py-3 px-4 text-right font-mono font-medium ${
+                    className={`py-1 px-2 text-right font-mono text-xs font-medium ${
                       !hasActivity
                         ? 'text-slate-400 dark:text-slate-600'
                         : isProfitPositive
@@ -284,7 +285,7 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                   </td>
 
                   {/* ⭐ VALOR DA HORA HOJE */}
-                  <td className="py-3 px-5 text-right font-mono font-semibold text-[#7C3AED] dark:text-[#C4B5FD]">
+                  <td className="py-1 px-2.5 text-right font-mono text-xs font-semibold text-[#7C3AED] dark:text-[#C4B5FD]">
                     {entry.horasTrabalhadas > 0 ? (
                       <span className={calc.valorHoraHoje >= 0 ? 'text-[#7C3AED] dark:text-[#C4B5FD]' : 'text-rose-500'}>
                         {formatCurrency(calc.valorHoraHoje)}/h
