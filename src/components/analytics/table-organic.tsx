@@ -11,7 +11,7 @@ interface TableOrganicProps {
   onSaveEntry: (entry: OrganicDailyEntry) => Promise<void>
 }
 
-const CHANNELS = ['TikTok', 'Instagram', 'Reddit', 'X (Twitter)', 'Tinder/Bumble', 'Geral/Misto']
+const CHANNELS = ['Instagram', 'TikTok', 'Reddit', 'X (Twitter)', 'Tinder/Bumble', 'Geral/Misto']
 
 export const TableOrganic: React.FC<TableOrganicProps> = ({
   days,
@@ -36,7 +36,7 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
       id: `${dateString}_${selectedModelId}`,
       data: dateString,
       modeloId: selectedModelId,
-      canalRedeSocial: 'TikTok',
+      canalRedeSocial: 'Instagram',
       horasTrabalhadas: 0,
       faturamento: 0,
       custoReposicaoContas: 0,
@@ -95,7 +95,7 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                 id: `${day.dateString}_${selectedModelId}`,
                 data: day.dateString,
                 modeloId: selectedModelId,
-                canalRedeSocial: 'TikTok',
+                canalRedeSocial: 'Instagram',
                 horasTrabalhadas: 0,
                 faturamento: 0,
                 custoReposicaoContas: 0,
@@ -176,7 +176,7 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                   {/* Canal Social */}
                   <td className="p-0.5 px-1">
                     <select
-                      value={entry.canalRedeSocial || 'TikTok'}
+                      value={entry.canalRedeSocial || 'Instagram'}
                       onChange={(e) =>
                         handleFieldChange(day.dateString, 'canalRedeSocial', e.target.value)
                       }
