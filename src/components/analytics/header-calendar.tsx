@@ -1,5 +1,4 @@
 import React from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useCalendarContext } from '@/contexts/calendar-context'
 import { useTheme } from '@/contexts/theme-context'
@@ -15,8 +14,6 @@ export const HeaderCalendar: React.FC<HeaderCalendarProps> = ({ onOpenExport }) 
     selectedMonth,
     setSelectedYear,
     setSelectedMonth,
-    goToPreviousMonth,
-    goToNextMonth,
     goToCurrentMonth,
   } = useCalendarContext()
   const { theme, toggleTheme } = useTheme()
@@ -28,16 +25,6 @@ export const HeaderCalendar: React.FC<HeaderCalendarProps> = ({ onOpenExport }) 
       <div className="mx-auto flex flex-wrap items-center justify-between gap-4 max-w-[1600px]">
         {/* Controle de Calendário Organizado e Limpo */}
         <div className="flex items-center gap-2">
-          {/* Botão Anterior */}
-          <button
-            type="button"
-            onClick={goToPreviousMonth}
-            title="Mês anterior"
-            className="flex items-center justify-center h-9 w-9 rounded-lg border border-slate-200 dark:border-[#1E2025] bg-slate-50 dark:bg-[#121316] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1A1C22] transition-colors cursor-pointer"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-
           {/* Select de Mês */}
           <select
             value={selectedMonth}
@@ -63,16 +50,6 @@ export const HeaderCalendar: React.FC<HeaderCalendarProps> = ({ onOpenExport }) 
               </option>
             ))}
           </select>
-
-          {/* Botão Próximo */}
-          <button
-            type="button"
-            onClick={goToNextMonth}
-            title="Próximo mês"
-            className="flex items-center justify-center h-9 w-9 rounded-lg border border-slate-200 dark:border-[#1E2025] bg-slate-50 dark:bg-[#121316] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1A1C22] transition-colors cursor-pointer"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
 
           {/* Botão Mês Atual */}
           <button
