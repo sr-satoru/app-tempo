@@ -22,64 +22,14 @@ export const DEFAULT_GATEWAY_CONFIG: GatewayConfig = {
   enabled: true,
 }
 
-const DEFAULT_FIXED_COSTS: FixedCostItem[] = [
-  {
-    id: 'cost_init_1',
-    modeloId: 'mod_1',
-    nome: 'iPhone 11 (Aparelho e Contas)',
-    categoria: 'equipamento',
-    tipo: 'inicial',
-    valor: 1200,
-    amortizarMeses: 3,
-    ativo: true,
-    criadoEm: '2026-10-01T00:00:00.000Z',
-  },
-  {
-    id: 'cost_init_2',
-    modeloId: 'mod_1',
-    nome: 'Ensaio Fotográfico Inicial',
-    categoria: 'conteudo',
-    tipo: 'inicial',
-    valor: 450,
-    amortizarMeses: 1,
-    ativo: true,
-    criadoEm: '2026-10-01T00:00:00.000Z',
-  },
-  {
-    id: 'cost_fix_1',
-    modeloId: 'mod_1',
-    nome: 'Assinatura Multilogin Dolphin',
-    categoria: 'software',
-    tipo: 'mensal',
-    valor: 99,
-    amortizarMeses: 1,
-    ativo: true,
-    criadoEm: '2026-10-01T00:00:00.000Z',
-  },
-]
-
-const DEFAULT_MODELS: ModeloEntity[] = [
-  { id: 'mod_1', nome: 'Modelo Laura VIP', ativa: true, criadaEm: new Date().toISOString() },
-  { id: 'mod_2', nome: 'Modelo Carol Star', ativa: true, criadaEm: new Date().toISOString() },
-  { id: 'mod_3', nome: 'Modelo Bruna Dark', ativa: true, criadaEm: new Date().toISOString() },
-]
-
-const DEFAULT_PROFILES: PaidProfileEntity[] = [
-  { id: 'prof_1', nome: 'BM 01 - Escala Meta', ativo: true, criadoEm: new Date().toISOString() },
-  { id: 'prof_2', nome: 'BM 02 - Google Ads', ativo: true, criadoEm: new Date().toISOString() },
-]
-
+// O estado inicial em memória começa vazio e é alimentado 100% pelo arquivo data/banco.json
 let memoryDb: BancoData = {
-  models: DEFAULT_MODELS,
-  paidProfiles: DEFAULT_PROFILES,
+  models: [],
+  paidProfiles: [],
   organicEntries: [],
   paidEntries: [],
-  gatewayConfigs: {
-    mod_1: { ...DEFAULT_GATEWAY_CONFIG },
-  },
-  fixedCosts: {
-    mod_1: [...DEFAULT_FIXED_COSTS],
-  },
+  gatewayConfigs: {},
+  fixedCosts: {},
 }
 
 let loadPromise: Promise<BancoData> | null = null
@@ -94,12 +44,12 @@ export async function ensureLoaded(): Promise<BancoData> {
         const data = await res.json()
         if (data && typeof data === 'object') {
           memoryDb = {
-            models: Array.isArray(data.models) ? data.models : DEFAULT_MODELS,
-            paidProfiles: Array.isArray(data.paidProfiles) ? data.paidProfiles : DEFAULT_PROFILES,
+            models: Array.isArray(data.models) ? data.models : [],
+            paidProfiles: Array.isArray(data.paidProfiles) ? data.paidProfiles : [],
             organicEntries: Array.isArray(data.organicEntries) ? data.organicEntries : [],
             paidEntries: Array.isArray(data.paidEntries) ? data.paidEntries : [],
-            gatewayConfigs: data.gatewayConfigs || { mod_1: { ...DEFAULT_GATEWAY_CONFIG } },
-            fixedCosts: data.fixedCosts || { mod_1: [...DEFAULT_FIXED_COSTS] },
+            gatewayConfigs: data.gatewayConfigs || {},
+            fixedCosts: data.fixedCosts || {},
           }
           return memoryDb
         }
@@ -185,7 +135,7 @@ export const storage = {
 
   getFixedCosts(modeloId: string): FixedCostItem[] {
     if (!modeloId) return []
-    return memoryDb.fixedCosts[modeloId] || (modeloId === 'mod_1' ? DEFAULT_FIXED_COSTS : [])
+    return memoryDb.fixedCosts[modeloId] || []
   },
 
   saveFixedCosts(modeloId: string, items: FixedCostItem[]): void {
