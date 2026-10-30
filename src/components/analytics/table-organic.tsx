@@ -135,13 +135,12 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                     </div>
                   </td>
 
-                  {/* Horas */}
+                  {/* Horas - 100% editável para qualquer dia */}
                   <td className="py-2 px-2">
                     <input
                       type="number"
                       step="0.5"
                       min="0"
-                      disabled={selectedModelId === 'all'}
                       placeholder="0.0h"
                       value={entry.horasTrabalhadas || ''}
                       onChange={(e) =>
@@ -151,13 +150,12 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                     />
                   </td>
 
-                  {/* Faturamento */}
+                  {/* Faturamento - 100% editável para qualquer dia */}
                   <td className="py-2 px-2">
                     <input
                       type="number"
                       step="0.01"
                       min="0"
-                      disabled={selectedModelId === 'all'}
                       placeholder="R$ 0,00"
                       value={entry.faturamento || ''}
                       onChange={(e) =>
@@ -167,10 +165,9 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                     />
                   </td>
 
-                  {/* Canal Social */}
+                  {/* Canal Social - 100% editável para qualquer dia */}
                   <td className="py-2 px-2">
                     <select
-                      disabled={selectedModelId === 'all'}
                       value={entry.canalRedeSocial || 'TikTok'}
                       onChange={(e) =>
                         handleFieldChange(day.dateString, 'canalRedeSocial', e.target.value)
@@ -185,13 +182,12 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                     </select>
                   </td>
 
-                  {/* Custo Reposição Contas */}
+                  {/* Custo Reposição Contas - 100% editável */}
                   <td className="py-2 px-2">
                     <input
                       type="number"
                       step="0.01"
                       min="0"
-                      disabled={selectedModelId === 'all'}
                       placeholder="R$ 0,00"
                       value={entry.custoReposicaoContas || ''}
                       onChange={(e) =>
@@ -205,13 +201,12 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                     />
                   </td>
 
-                  {/* Qtd Contas Repostas */}
+                  {/* Qtd Contas Repostas - 100% editável */}
                   <td className="py-2 px-2">
                     <input
                       type="number"
                       step="1"
                       min="0"
-                      disabled={selectedModelId === 'all'}
                       placeholder="0"
                       value={entry.qtdContasRepostas || ''}
                       onChange={(e) =>
@@ -221,13 +216,12 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                     />
                   </td>
 
-                  {/* Outros Custos Contingência */}
+                  {/* Outros Custos Contingência - 100% editável */}
                   <td className="py-2 px-2">
                     <input
                       type="number"
                       step="0.01"
                       min="0"
-                      disabled={selectedModelId === 'all'}
                       placeholder="R$ 0,00"
                       value={entry.outrosCustosContingencia || ''}
                       onChange={(e) =>
@@ -241,11 +235,10 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                     />
                   </td>
 
-                  {/* Notas */}
+                  {/* Notas - 100% editável */}
                   <td className="py-2 px-2">
                     <input
                       type="text"
-                      disabled={selectedModelId === 'all'}
                       placeholder="Anotações..."
                       value={entry.observacoes || ''}
                       onChange={(e) =>
@@ -255,7 +248,7 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                     />
                   </td>
 
-                  {/* --- Resultados Calculados (Separador Limpo à Direita) --- */}
+                  {/* --- Resultados Calculados (Atualizam na hora) --- */}
 
                   {/* Total Contingência */}
                   <td className="py-3 px-4 text-right font-mono text-slate-500 dark:text-slate-400 border-l border-slate-200 dark:border-[#1E2025]">
@@ -280,7 +273,7 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                     {hasActivity ? formatCurrency(calc.lucroLiquido) : '—'}
                   </td>
 
-                  {/* ⭐ VALOR DA HORA HOJE (LIMPO E EM DESTAQUE) */}
+                  {/* ⭐ VALOR DA HORA HOJE */}
                   <td className="py-3 px-5 text-right font-mono font-semibold text-[#7C3AED] dark:text-[#C4B5FD]">
                     {entry.horasTrabalhadas > 0 ? (
                       <span className={calc.valorHoraHoje >= 0 ? 'text-[#7C3AED] dark:text-[#C4B5FD]' : 'text-rose-500'}>

@@ -130,13 +130,12 @@ export const TablePaid: React.FC<TablePaidProps> = ({
                     </div>
                   </td>
 
-                  {/* Horas */}
+                  {/* Horas - 100% editável */}
                   <td className="py-2 px-2">
                     <input
                       type="number"
                       step="0.5"
                       min="0"
-                      disabled={selectedProfileId === 'all'}
                       placeholder="0.0h"
                       value={entry.horasTrabalhadas || ''}
                       onChange={(e) =>
@@ -146,13 +145,12 @@ export const TablePaid: React.FC<TablePaidProps> = ({
                     />
                   </td>
 
-                  {/* Faturamento */}
+                  {/* Faturamento - 100% editável */}
                   <td className="py-2 px-2">
                     <input
                       type="number"
                       step="0.01"
                       min="0"
-                      disabled={selectedProfileId === 'all'}
                       placeholder="R$ 0,00"
                       value={entry.faturamento || ''}
                       onChange={(e) =>
@@ -162,13 +160,12 @@ export const TablePaid: React.FC<TablePaidProps> = ({
                     />
                   </td>
 
-                  {/* Gasto em Ads */}
+                  {/* Gasto em Ads - 100% editável */}
                   <td className="py-2 px-2">
                     <input
                       type="number"
                       step="0.01"
                       min="0"
-                      disabled={selectedProfileId === 'all'}
                       placeholder="R$ 0,00"
                       value={entry.gastoAds || ''}
                       onChange={(e) =>
@@ -178,13 +175,12 @@ export const TablePaid: React.FC<TablePaidProps> = ({
                     />
                   </td>
 
-                  {/* Outros Custos */}
+                  {/* Outros Custos - 100% editável */}
                   <td className="py-2 px-2">
                     <input
                       type="number"
                       step="0.01"
                       min="0"
-                      disabled={selectedProfileId === 'all'}
                       placeholder="R$ 0,00"
                       value={entry.outrosGastos || ''}
                       onChange={(e) =>
@@ -194,11 +190,10 @@ export const TablePaid: React.FC<TablePaidProps> = ({
                     />
                   </td>
 
-                  {/* Notas */}
+                  {/* Notas - 100% editável */}
                   <td className="py-2 px-2">
                     <input
                       type="text"
-                      disabled={selectedProfileId === 'all'}
                       placeholder="Campanha, BM..."
                       value={entry.observacoes || ''}
                       onChange={(e) =>

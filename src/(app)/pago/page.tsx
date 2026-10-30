@@ -12,16 +12,20 @@ import type { PaidDailyEntry } from '@/types/analytics'
 export default function PaidPage() {
   const { selectedYear, selectedMonth } = useCalendarContext()
   const [profiles, setProfiles] = useState<PaidProfileEntity[]>([])
-  const [selectedProfileId, setSelectedProfileId] = useState<string>('all')
+  const [selectedProfileId, setSelectedProfileId] = useState<string>('')
   const [entries, setEntries] = useState<PaidDailyEntry[]>([])
   const [loading, setLoading] = useState(true)
 
   const loadProfiles = async () => {
     const list = await api.models.listPaidProfiles()
     setProfiles(list)
+    if (list.length > 0 && !selectedProfileId) {
+      setSelectedProfileId(list[0].id)
+    }
   }
 
   const loadEntries = async () => {
+    if (!selectedProfileId) return
     setLoading(true)
     try {
       const list = await api.analytics.listPaidEntries({
@@ -40,7 +44,9 @@ export default function PaidPage() {
   }, [])
 
   useEffect(() => {
-    loadEntries()
+    if (selectedProfileId) {
+      loadEntries()
+    }
   }, [selectedYear, selectedMonth, selectedProfileId])
 
   const handleSaveEntry = async (entry: PaidDailyEntry) => {
@@ -64,7 +70,13 @@ export default function PaidPage() {
 
   const handleDeleteProfile = async (id: string) => {
     await api.models.deletePaidProfile(id)
-    await loadProfiles()
+    const list = await api.models.listPaidProfiles()
+    setProfiles(list)
+    if (list.length > 0) {
+      setSelectedProfileId(list[0].id)
+    } else {
+      setSelectedProfileId('')
+    }
   }
 
   const days = useMemo(() => {
@@ -86,12 +98,6 @@ export default function PaidPage() {
       />
 
       <SummaryCards summary={summary} mode="pago" />
-
-      {selectedProfileId === 'all' && (
-        <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 text-xs text-blue-600 dark:text-blue-400">
-          💡 <strong>Visão Consolidada de Todos os Perfis:</strong> Exibindo o faturamento somado de todas as contas de anúncio e BMs. Para lançar dados diários, selecione uma BM/Perfil acima.
-        </div>
-      )}
 
       <TablePaid
         days={days}

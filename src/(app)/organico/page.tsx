@@ -12,21 +12,22 @@ import type { OrganicDailyEntry } from '@/types/analytics'
 export default function OrganicPage() {
   const { selectedYear, selectedMonth } = useCalendarContext()
   const [models, setModels] = useState<ModeloEntity[]>([])
-  const [selectedModelId, setSelectedModelId] = useState<string>('all')
+  const [selectedModelId, setSelectedModelId] = useState<string>('')
   const [entries, setEntries] = useState<OrganicDailyEntry[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Carrega modelos
+  // Carrega modelos e seleciona a primeira modelo por padrão para nunca bloquear nenhum dia
   const loadModels = async () => {
     const list = await api.models.listModels()
     setModels(list)
-    if (selectedModelId === 'all' && list.length > 0 && false) {
-      // mantem 'all'
+    if (list.length > 0 && !selectedModelId) {
+      setSelectedModelId(list[0].id)
     }
   }
 
   // Carrega lançamentos do mês e modelo selecionados
   const loadEntries = async () => {
+    if (!selectedModelId) return
     setLoading(true)
     try {
       const list = await api.analytics.listOrganicEntries({
@@ -45,13 +46,14 @@ export default function OrganicPage() {
   }, [])
 
   useEffect(() => {
-    loadEntries()
+    if (selectedModelId) {
+      loadEntries()
+    }
   }, [selectedYear, selectedMonth, selectedModelId])
 
-  // Salvar lançamento
+  // Salvar lançamento - qualquer dia passado ou futuro pode ser editado a qualquer momento
   const handleSaveEntry = async (entry: OrganicDailyEntry) => {
     await api.analytics.upsertOrganicEntry(entry)
-    // Atualiza estado local
     setEntries((prev) => {
       const idx = prev.findIndex((e) => e.data === entry.data && e.modeloId === entry.modeloId)
       if (idx >= 0) {
@@ -63,32 +65,34 @@ export default function OrganicPage() {
     })
   }
 
-  // Criação de nova modelo
   const handleCreateModel = async (nome: string, desc?: string) => {
     const created = await api.models.createModel(nome, desc)
     await loadModels()
     setSelectedModelId(created.id)
   }
 
-  // Exclusão de modelo
   const handleDeleteModel = async (id: string) => {
     await api.models.deleteModel(id)
-    await loadModels()
+    const list = await api.models.listModels()
+    setModels(list)
+    if (list.length > 0) {
+      setSelectedModelId(list[0].id)
+    } else {
+      setSelectedModelId('')
+    }
   }
 
-  // Dias do mês atual gerados offline
   const days = useMemo(() => {
     return getDaysInMonth(selectedYear, selectedMonth)
   }, [selectedYear, selectedMonth])
 
-  // Resumo consolidado do período (Média Ponderada Real da Hora)
   const summary = useMemo(() => {
     return summarizeOrganicPeriod(entries)
   }, [entries])
 
   return (
     <div className="space-y-4">
-      {/* Seletor Dinâmico de Modelos OFM */}
+      {/* Seletor de Modelo */}
       <ModelSelector
         models={models}
         selectedModelId={selectedModelId}
@@ -100,16 +104,7 @@ export default function OrganicPage() {
       {/* Cards de Resumo */}
       <SummaryCards summary={summary} mode="organico" />
 
-      {/* Aviso caso selecione 'Todas as Modelos' */}
-      {selectedModelId === 'all' && (
-        <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 text-xs text-blue-600 dark:text-blue-400 flex items-center justify-between">
-          <span>
-            💡 <strong>Visão Consolidada de Todas as Modelos:</strong> Você está visualizando a soma geral de contingência e faturamento. Para lançar dados diários com precisão, selecione uma modelo específica acima.
-          </span>
-        </div>
-      )}
-
-      {/* Tabela Diária do Mês */}
+      {/* Tabela Diária do Mês - Todos os dias anteriores e atuais 100% editáveis */}
       <TableOrganic
         days={days}
         entries={entries}
