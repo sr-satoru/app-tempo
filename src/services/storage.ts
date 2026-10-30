@@ -17,7 +17,6 @@ export const DEFAULT_GATEWAY_CONFIG: GatewayConfig = {
   feeType: 'mixed',
   percentageFee: 8.99,
   fixedFeePerTransaction: 2.49,
-  averageTicket: 47.0,
   withdrawalOrMonthlyFee: 3.67,
   enabled: true,
 }

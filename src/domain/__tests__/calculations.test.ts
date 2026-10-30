@@ -111,7 +111,6 @@ describe('Motor Matemático: Cálculos Diários e Acumulados', () => {
       feeType: 'percentage',
       percentageFee: 4.99,
       fixedFeePerTransaction: 0,
-      averageTicket: 50,
       withdrawalOrMonthlyFee: 0,
       enabled: true,
     })
@@ -119,14 +118,14 @@ describe('Motor Matemático: Cálculos Diários e Acumulados', () => {
     expect(resPercent.fixedTransactionCost).toBe(0)
     expect(resPercent.totalRetido).toBe(49.9)
 
-    // 2. Apenas Taxa Fixa por transação (ex: 20 vendas de R$ 50 = R$ 1000)
+    // 2. Apenas Taxa Fixa por transação (ex: 20 transações com taxa de R$ 2.0)
     const resFixed = calculateGatewayBreakdown(1000, {
       preset: 'custom',
       name: 'Custom',
       feeType: 'fixed',
       percentageFee: 0,
       fixedFeePerTransaction: 2.0,
-      averageTicket: 50, // 1000 / 50 = 20 transações
+      estimatedTransactions: 20,
       withdrawalOrMonthlyFee: 5,
       enabled: true,
     })
@@ -142,7 +141,7 @@ describe('Motor Matemático: Cálculos Diários e Acumulados', () => {
       feeType: 'mixed',
       percentageFee: 8.99,
       fixedFeePerTransaction: 2.49,
-      averageTicket: 50, // 20 transações
+      estimatedTransactions: 20,
       withdrawalOrMonthlyFee: 3.67,
       enabled: true,
     })
@@ -173,7 +172,6 @@ describe('Motor Matemático: Cálculos Diários e Acumulados', () => {
       feeType: 'percentage' as const,
       percentageFee: 10,
       fixedFeePerTransaction: 0,
-      averageTicket: 100,
       withdrawalOrMonthlyFee: 0,
       enabled: true,
     }

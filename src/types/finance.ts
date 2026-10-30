@@ -15,7 +15,6 @@ export interface GatewayConfig {
   feeType: GatewayFeeType
   percentageFee: number // Ex: 8.99 (%)
   fixedFeePerTransaction: number // Ex: 2.49 (R$)
-  averageTicket: number // Ex: 47.00 (R$)
   estimatedTransactions?: number // Quantidade direta de vendas/transações se informada
   withdrawalOrMonthlyFee: number // Ex: 3.67 (R$) por saque ou taxa de plataforma
   enabled: boolean

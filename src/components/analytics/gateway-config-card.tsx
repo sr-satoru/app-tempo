@@ -138,7 +138,7 @@ export const GatewayConfigCard: React.FC<GatewayConfigCardProps> = ({
         </div>
 
         {/* Inputs de Configuração */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
           {(config.feeType === 'percentage' || config.feeType === 'mixed') && (
             <div>
               <label className="text-[11px] text-slate-500 dark:text-slate-400 block mb-1">
@@ -175,21 +175,6 @@ export const GatewayConfigCard: React.FC<GatewayConfigCardProps> = ({
               />
             </div>
           )}
-
-          <div>
-            <label className="text-[11px] text-slate-500 dark:text-slate-400 block mb-1">
-              Ticket Médio
-            </label>
-            <input
-              type="number"
-              step="1"
-              min="1"
-              value={config.averageTicket || ''}
-              onChange={(e) => handleFieldChange('averageTicket', e.target.value)}
-              className="w-full h-7 rounded px-2 bg-white dark:bg-[#101115] border border-slate-200 dark:border-[#22242E] text-xs font-mono text-slate-800 dark:text-slate-200"
-              placeholder="47"
-            />
-          </div>
 
           <div>
             <label className="text-[11px] text-slate-500 dark:text-slate-400 block mb-1">

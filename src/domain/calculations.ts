@@ -159,10 +159,6 @@ export function calculateGatewayBreakdown(
   let estimatedTransactionsCount = 0
   if (config.estimatedTransactions && config.estimatedTransactions > 0) {
     estimatedTransactionsCount = config.estimatedTransactions
-  } else if (config.averageTicket > 0) {
-    estimatedTransactionsCount = Math.max(1, Math.round(faturamento / config.averageTicket))
-  } else {
-    estimatedTransactionsCount = 1
   }
 
   let percentCost = 0
