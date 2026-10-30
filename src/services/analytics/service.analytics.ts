@@ -8,6 +8,7 @@ export const serviceAnalytics = {
     year?: number
     month?: number
   }): Promise<OrganicDailyEntry[]> => {
+    await storage.ensureLoaded()
     let entries = storage.getOrganicEntries()
 
     if (filters?.modeloId && filters.modeloId !== 'all') {
@@ -23,6 +24,7 @@ export const serviceAnalytics = {
   },
 
   upsertOrganicEntry: async (entry: OrganicDailyEntry): Promise<OrganicDailyEntry> => {
+    await storage.ensureLoaded()
     const entries = storage.getOrganicEntries()
     const index = entries.findIndex(
       (e) => e.data === entry.data && e.modeloId === entry.modeloId
@@ -46,6 +48,7 @@ export const serviceAnalytics = {
     year?: number
     month?: number
   }): Promise<PaidDailyEntry[]> => {
+    await storage.ensureLoaded()
     let entries = storage.getPaidEntries()
 
     if (filters?.profileId && filters.profileId !== 'all') {
@@ -61,6 +64,7 @@ export const serviceAnalytics = {
   },
 
   upsertPaidEntry: async (entry: PaidDailyEntry): Promise<PaidDailyEntry> => {
+    await storage.ensureLoaded()
     const entries = storage.getPaidEntries()
     const index = entries.findIndex(
       (e) => e.data === entry.data && e.profileId === entry.profileId

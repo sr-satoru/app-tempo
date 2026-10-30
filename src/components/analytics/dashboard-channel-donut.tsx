@@ -1,6 +1,13 @@
 import React, { useState } from 'react'
 import { formatCurrency } from '@/lib/utils'
 
+function fmtCompact(val: number): string {
+  if (val >= 1_000_000_000) return `R$${(val / 1_000_000_000).toFixed(1)}B`
+  if (val >= 1_000_000) return `R$${(val / 1_000_000).toFixed(1)}M`
+  if (val >= 1000) return `R$${(val / 1000).toFixed(1)}k`
+  return formatCurrency(val)
+}
+
 export interface ChannelShareItem {
   channel: string
   faturamento: number
@@ -89,10 +96,12 @@ export const DashboardChannelDonut: React.FC<DashboardChannelDonutProps> = ({
             ))}
           </svg>
           {/* Center text */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none select-none">
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none select-none px-2">
             <span className="text-[9px] text-slate-400 leading-none">Total</span>
-            <span className="text-[11px] font-bold text-slate-900 dark:text-white font-mono tabular-nums leading-tight mt-0.5">
-              {totalFaturamento >= 1_000_000
+            <span className="text-[10px] font-bold text-slate-900 dark:text-white font-mono tabular-nums leading-tight mt-0.5 truncate max-w-[70px] block">
+              {totalFaturamento >= 1_000_000_000
+                ? `R$${(totalFaturamento / 1_000_000_000).toFixed(1)}B`
+                : totalFaturamento >= 1_000_000
                 ? `R$${(totalFaturamento / 1_000_000).toFixed(1)}M`
                 : totalFaturamento >= 1000
                 ? `R$${(totalFaturamento / 1000).toFixed(1)}k`
@@ -124,7 +133,7 @@ export const DashboardChannelDonut: React.FC<DashboardChannelDonutProps> = ({
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 <span className="font-mono font-semibold text-slate-900 dark:text-white text-[11px]">
-                  {validItems.length > 0 ? formatCurrency(item.faturamento) : '—'}
+                  {validItems.length > 0 ? fmtCompact(item.faturamento) : '—'}
                 </span>
                 <span
                   className="text-[10px] text-slate-400 font-mono w-8 text-right"

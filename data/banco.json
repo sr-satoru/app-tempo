@@ -1,0 +1,181 @@
+{
+  "models": [
+    {
+      "id": "mod_1",
+      "nome": "Modelo Laura VIP",
+      "ativa": true,
+      "criadaEm": "2026-10-30T15:46:05.977Z"
+    },
+    {
+      "id": "mod_2",
+      "nome": "Modelo Carol Star",
+      "ativa": true,
+      "criadaEm": "2026-10-30T15:46:05.977Z"
+    },
+    {
+      "id": "mod_3",
+      "nome": "Modelo Bruna Dark",
+      "ativa": true,
+      "criadaEm": "2026-10-30T15:46:05.977Z"
+    }
+  ],
+  "paidProfiles": [
+    {
+      "id": "prof_1",
+      "nome": "BM 01 - Escala Meta",
+      "ativo": true,
+      "criadoEm": "2026-10-30T15:52:24.442Z"
+    },
+    {
+      "id": "prof_2",
+      "nome": "BM 02 - Google Ads",
+      "ativo": true,
+      "criadoEm": "2026-10-30T15:52:24.442Z"
+    }
+  ],
+  "organicEntries": [
+    {
+      "id": "2026-10-01_mod_1",
+      "data": "2026-10-01",
+      "modeloId": "mod_1",
+      "canalRedeSocial": "TikTok",
+      "horasTrabalhadas": 0,
+      "faturamento": 800,
+      "custoReposicaoContas": 0,
+      "qtdContasRepostas": 0,
+      "outrosCustosContingencia": 0,
+      "observacoes": ""
+    }
+  ],
+  "paidEntries": [
+    {
+      "id": "2026-10-01_prof_2",
+      "data": "2026-10-01",
+      "profileId": "prof_2",
+      "horasTrabalhadas": 312322123213,
+      "faturamento": 323213213212,
+      "gastoAds": 2323,
+      "outrosGastos": 12213122122112,
+      "observacoes": ""
+    },
+    {
+      "id": "2026-10-02_prof_2",
+      "data": "2026-10-02",
+      "profileId": "prof_2",
+      "horasTrabalhadas": 0,
+      "faturamento": 3232,
+      "gastoAds": 21212,
+      "outrosGastos": 21212112,
+      "observacoes": ""
+    },
+    {
+      "id": "2026-10-03_prof_2",
+      "data": "2026-10-03",
+      "profileId": "prof_2",
+      "horasTrabalhadas": 0,
+      "faturamento": 0,
+      "gastoAds": 0,
+      "outrosGastos": 2131231232,
+      "observacoes": ""
+    },
+    {
+      "id": "2026-10-04_prof_2",
+      "data": "2026-10-04",
+      "profileId": "prof_2",
+      "horasTrabalhadas": 2123321,
+      "faturamento": 2121312,
+      "gastoAds": 2121313223,
+      "outrosGastos": 0,
+      "observacoes": ""
+    },
+    {
+      "id": "2026-10-05_prof_2",
+      "data": "2026-10-05",
+      "profileId": "prof_2",
+      "horasTrabalhadas": 0,
+      "faturamento": 0,
+      "gastoAds": 0,
+      "outrosGastos": 321132213212,
+      "observacoes": ""
+    },
+    {
+      "id": "2026-10-06_prof_2",
+      "data": "2026-10-06",
+      "profileId": "prof_2",
+      "horasTrabalhadas": 12,
+      "faturamento": 212131323121321,
+      "gastoAds": 12121212,
+      "outrosGastos": 12112,
+      "observacoes": ""
+    },
+    {
+      "id": "2026-10-07_prof_2",
+      "data": "2026-10-07",
+      "profileId": "prof_2",
+      "horasTrabalhadas": 0,
+      "faturamento": 0,
+      "gastoAds": 0,
+      "outrosGastos": 0,
+      "observacoes": "213123123124132423rgfdfgdfgererergdfdfgfder"
+    },
+    {
+      "id": "2026-10-08_prof_2",
+      "data": "2026-10-08",
+      "profileId": "prof_2",
+      "horasTrabalhadas": 0,
+      "faturamento": 0,
+      "gastoAds": 0,
+      "outrosGastos": 0,
+      "observacoes": "rgdf4eerger34tewr"
+    }
+  ],
+  "gatewayConfigs": {
+    "mod_1": {
+      "preset": "kiwify",
+      "name": "Kiwify",
+      "feeType": "mixed",
+      "percentageFee": 8.99,
+      "fixedFeePerTransaction": 2.49,
+      "averageTicket": 47,
+      "withdrawalOrMonthlyFee": 3.67,
+      "enabled": true
+    }
+  },
+  "fixedCosts": {
+    "mod_1": [
+      {
+        "id": "cost_init_1",
+        "modeloId": "mod_1",
+        "nome": "iPhone 11 (Aparelho e Contas)",
+        "categoria": "equipamento",
+        "tipo": "inicial",
+        "valor": 1200,
+        "amortizarMeses": 3,
+        "ativo": true,
+        "criadoEm": "2026-10-01T00:00:00.000Z"
+      },
+      {
+        "id": "cost_init_2",
+        "modeloId": "mod_1",
+        "nome": "Ensaio Fotográfico Inicial",
+        "categoria": "conteudo",
+        "tipo": "inicial",
+        "valor": 450,
+        "amortizarMeses": 1,
+        "ativo": true,
+        "criadoEm": "2026-10-01T00:00:00.000Z"
+      },
+      {
+        "id": "cost_fix_1",
+        "modeloId": "mod_1",
+        "nome": "Assinatura Multilogin Dolphin",
+        "categoria": "software",
+        "tipo": "mensal",
+        "valor": 99,
+        "amortizarMeses": 1,
+        "ativo": true,
+        "criadoEm": "2026-10-01T00:00:00.000Z"
+      }
+    ]
+  }
+}

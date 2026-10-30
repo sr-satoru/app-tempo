@@ -2,13 +2,13 @@ import type { ModeloEntity, PaidProfileEntity } from '@/types/model'
 import type { OrganicDailyEntry, PaidDailyEntry } from '@/types/analytics'
 import type { GatewayConfig, FixedCostItem } from '@/types/finance'
 
-const STORAGE_KEYS = {
-  MODELS: 'app_models_v1',
-  PAID_PROFILES: 'app_paid_profiles_v1',
-  ORGANIC_ENTRIES: 'app_organic_entries_v1',
-  PAID_ENTRIES: 'app_paid_entries_v1',
-  GATEWAY_CONFIG: 'app_gateway_config_v1',
-  FIXED_COSTS: 'app_fixed_costs_v1',
+export interface BancoData {
+  models: ModeloEntity[]
+  paidProfiles: PaidProfileEntity[]
+  organicEntries: OrganicDailyEntry[]
+  paidEntries: PaidDailyEntry[]
+  gatewayConfigs: Record<string, GatewayConfig>
+  fixedCosts: Record<string, FixedCostItem[]>
 }
 
 export const DEFAULT_GATEWAY_CONFIG: GatewayConfig = {
@@ -26,7 +26,7 @@ const DEFAULT_FIXED_COSTS: FixedCostItem[] = [
   {
     id: 'cost_init_1',
     modeloId: 'mod_1',
-    nome: 'iPhone 11 p/ Gravação e TikTok',
+    nome: 'iPhone 11 (Aparelho e Contas)',
     categoria: 'equipamento',
     tipo: 'inicial',
     valor: 1200,
@@ -48,7 +48,7 @@ const DEFAULT_FIXED_COSTS: FixedCostItem[] = [
   {
     id: 'cost_fix_1',
     modeloId: 'mod_1',
-    nome: 'Assinatura Multilogin (Dolphin)',
+    nome: 'Assinatura Multilogin Dolphin',
     categoria: 'software',
     tipo: 'mensal',
     valor: 99,
@@ -69,108 +69,128 @@ const DEFAULT_PROFILES: PaidProfileEntity[] = [
   { id: 'prof_2', nome: 'BM 02 - Google Ads', ativo: true, criadoEm: new Date().toISOString() },
 ]
 
-export const storage = {
-  getModels(): ModeloEntity[] {
-    const raw = localStorage.getItem(STORAGE_KEYS.MODELS)
-    if (!raw) {
-      localStorage.setItem(STORAGE_KEYS.MODELS, JSON.stringify(DEFAULT_MODELS))
-      return DEFAULT_MODELS
-    }
+let memoryDb: BancoData = {
+  models: DEFAULT_MODELS,
+  paidProfiles: DEFAULT_PROFILES,
+  organicEntries: [],
+  paidEntries: [],
+  gatewayConfigs: {
+    mod_1: { ...DEFAULT_GATEWAY_CONFIG },
+  },
+  fixedCosts: {
+    mod_1: [...DEFAULT_FIXED_COSTS],
+  },
+}
+
+let loadPromise: Promise<BancoData> | null = null
+
+export async function ensureLoaded(): Promise<BancoData> {
+  if (loadPromise) return loadPromise
+
+  loadPromise = (async () => {
     try {
-      return JSON.parse(raw)
-    } catch {
-      return DEFAULT_MODELS
+      const res = await fetch(`/api/banco?t=${Date.now()}`)
+      if (res.ok) {
+        const data = await res.json()
+        if (data && typeof data === 'object') {
+          memoryDb = {
+            models: Array.isArray(data.models) ? data.models : DEFAULT_MODELS,
+            paidProfiles: Array.isArray(data.paidProfiles) ? data.paidProfiles : DEFAULT_PROFILES,
+            organicEntries: Array.isArray(data.organicEntries) ? data.organicEntries : [],
+            paidEntries: Array.isArray(data.paidEntries) ? data.paidEntries : [],
+            gatewayConfigs: data.gatewayConfigs || { mod_1: { ...DEFAULT_GATEWAY_CONFIG } },
+            fixedCosts: data.fixedCosts || { mod_1: [...DEFAULT_FIXED_COSTS] },
+          }
+          return memoryDb
+        }
+      }
+    } catch (err) {
+      console.warn('[storage] Falha ao carregar de /api/banco, mantendo dados em memória:', err)
     }
+    return memoryDb
+  })()
+
+  return loadPromise
+}
+
+// Dispara leitura imediatamente ao carregar o bundle
+if (typeof window !== 'undefined') {
+  ensureLoaded()
+}
+
+async function persist(): Promise<void> {
+  try {
+    await fetch('/api/banco', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(memoryDb),
+    })
+  } catch (err) {
+    console.error('[storage] Erro ao gravar em data/banco.json:', err)
+  }
+}
+
+export const storage = {
+  ensureLoaded,
+
+  getModels(): ModeloEntity[] {
+    return memoryDb.models
   },
 
   saveModels(models: ModeloEntity[]): void {
-    localStorage.setItem(STORAGE_KEYS.MODELS, JSON.stringify(models))
+    memoryDb.models = models
+    persist()
   },
 
   getPaidProfiles(): PaidProfileEntity[] {
-    const raw = localStorage.getItem(STORAGE_KEYS.PAID_PROFILES)
-    if (!raw) {
-      localStorage.setItem(STORAGE_KEYS.PAID_PROFILES, JSON.stringify(DEFAULT_PROFILES))
-      return DEFAULT_PROFILES
-    }
-    try {
-      return JSON.parse(raw)
-    } catch {
-      return DEFAULT_PROFILES
-    }
+    return memoryDb.paidProfiles
   },
 
   savePaidProfiles(profiles: PaidProfileEntity[]): void {
-    localStorage.setItem(STORAGE_KEYS.PAID_PROFILES, JSON.stringify(profiles))
+    memoryDb.paidProfiles = profiles
+    persist()
   },
 
   getOrganicEntries(): OrganicDailyEntry[] {
-    const raw = localStorage.getItem(STORAGE_KEYS.ORGANIC_ENTRIES)
-    if (!raw) return []
-    try {
-      return JSON.parse(raw)
-    } catch {
-      return []
-    }
+    return memoryDb.organicEntries
   },
 
   saveOrganicEntries(entries: OrganicDailyEntry[]): void {
-    localStorage.setItem(STORAGE_KEYS.ORGANIC_ENTRIES, JSON.stringify(entries))
+    memoryDb.organicEntries = entries
+    persist()
   },
 
   getPaidEntries(): PaidDailyEntry[] {
-    const raw = localStorage.getItem(STORAGE_KEYS.PAID_ENTRIES)
-    if (!raw) return []
-    try {
-      return JSON.parse(raw)
-    } catch {
-      return []
-    }
+    return memoryDb.paidEntries
   },
 
   savePaidEntries(entries: PaidDailyEntry[]): void {
-    localStorage.setItem(STORAGE_KEYS.PAID_ENTRIES, JSON.stringify(entries))
+    memoryDb.paidEntries = entries
+    persist()
   },
 
   // --- Gateway & Custos Fixos / Iniciais ---
   getGatewayConfig(modeloId: string): GatewayConfig {
     if (!modeloId) return { ...DEFAULT_GATEWAY_CONFIG }
-    const raw = localStorage.getItem(`${STORAGE_KEYS.GATEWAY_CONFIG}_${modeloId}`)
-    if (!raw) return { ...DEFAULT_GATEWAY_CONFIG }
-    try {
-      return { ...DEFAULT_GATEWAY_CONFIG, ...JSON.parse(raw) }
-    } catch {
-      return { ...DEFAULT_GATEWAY_CONFIG }
-    }
+    return memoryDb.gatewayConfigs[modeloId] || { ...DEFAULT_GATEWAY_CONFIG }
   },
 
   saveGatewayConfig(modeloId: string, config: GatewayConfig): void {
     if (!modeloId) return
-    localStorage.setItem(`${STORAGE_KEYS.GATEWAY_CONFIG}_${modeloId}`, JSON.stringify(config))
+    memoryDb.gatewayConfigs[modeloId] = config
+    persist()
   },
 
   getFixedCosts(modeloId: string): FixedCostItem[] {
     if (!modeloId) return []
-    const raw = localStorage.getItem(`${STORAGE_KEYS.FIXED_COSTS}_${modeloId}`)
-    if (!raw) {
-      if (modeloId === 'mod_1') {
-        localStorage.setItem(
-          `${STORAGE_KEYS.FIXED_COSTS}_${modeloId}`,
-          JSON.stringify(DEFAULT_FIXED_COSTS)
-        )
-        return DEFAULT_FIXED_COSTS
-      }
-      return []
-    }
-    try {
-      return JSON.parse(raw)
-    } catch {
-      return []
-    }
+    return memoryDb.fixedCosts[modeloId] || (modeloId === 'mod_1' ? DEFAULT_FIXED_COSTS : [])
   },
 
   saveFixedCosts(modeloId: string, items: FixedCostItem[]): void {
     if (!modeloId) return
-    localStorage.setItem(`${STORAGE_KEYS.FIXED_COSTS}_${modeloId}`, JSON.stringify(items))
+    memoryDb.fixedCosts[modeloId] = items
+    persist()
   },
 }
