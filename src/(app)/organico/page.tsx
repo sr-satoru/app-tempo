@@ -71,13 +71,17 @@ export default function OrganicPage() {
   }
 
   const handleDeleteModel = async (id: string) => {
-    await api.models.deleteModel(id)
-    const list = await api.models.listModels()
+    const list = await api.models.deleteModel(id)
     setModels(list)
     if (list.length > 0) {
-      setSelectedModelId(list[0].id)
+      if (selectedModelId === id || !list.some((m) => m.id === selectedModelId)) {
+        setSelectedModelId(list[0].id)
+      } else {
+        loadEntries()
+      }
     } else {
       setSelectedModelId('')
+      setEntries([])
     }
   }
 

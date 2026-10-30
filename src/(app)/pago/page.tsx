@@ -69,13 +69,17 @@ export default function PaidPage() {
   }
 
   const handleDeleteProfile = async (id: string) => {
-    await api.models.deletePaidProfile(id)
-    const list = await api.models.listPaidProfiles()
+    const list = await api.models.deletePaidProfile(id)
     setProfiles(list)
     if (list.length > 0) {
-      setSelectedProfileId(list[0].id)
+      if (selectedProfileId === id || !list.some((p) => p.id === selectedProfileId)) {
+        setSelectedProfileId(list[0].id)
+      } else {
+        loadEntries()
+      }
     } else {
       setSelectedProfileId('')
+      setEntries([])
     }
   }
 

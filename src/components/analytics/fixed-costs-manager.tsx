@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
 import type { FixedCostItem, CostCategory, CostType } from '@/types/finance'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, ArrowDownRight } from 'lucide-react'
 
 interface FixedCostsManagerProps {
   modeloId: string
@@ -278,7 +278,13 @@ export const FixedCostsManager: React.FC<FixedCostsManagerProps> = ({
             Fixos Mensais: <span className="text-slate-700 dark:text-slate-300 font-medium">{formatCurrency(custoFixoMensalTotal)}</span>
           </div>
           <div>
-            Total Extras: <span className="text-rose-500 font-semibold">{formatCurrency(custoInicialAplicado + custoFixoMensalTotal)}</span>
+            Total Extras:{' '}
+            <span className="text-slate-700 dark:text-slate-300 font-medium inline-flex items-center gap-0.5">
+              {(custoInicialAplicado + custoFixoMensalTotal) > 0 && (
+                <ArrowDownRight className="w-3 h-3 text-rose-500 shrink-0" />
+              )}
+              {formatCurrency(custoInicialAplicado + custoFixoMensalTotal)}
+            </span>
           </div>
         </div>
       </CardContent>

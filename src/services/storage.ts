@@ -102,9 +102,27 @@ function persist(): void {
   }, 350)
 }
 
-export const storage = {
+async function persistNow(): Promise<void> {
+  if (persistTimer) {
+    clearTimeout(persistTimer)
+    persistTimer = null
+  }
+  try {
+    await fetch('/api/banco', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(memoryDb),
+    })
+  } catch (err) {
+    console.error('[storage] Erro ao gravar em data/banco.json:', err)
+  }
+}
 
+export const storage = {
   ensureLoaded,
+  persistNow,
 
   getModels(): ModeloEntity[] {
     return memoryDb.models
@@ -115,6 +133,16 @@ export const storage = {
     persist()
   },
 
+  async deleteModel(id: string): Promise<ModeloEntity[]> {
+    memoryDb.models = memoryDb.models.filter((m) => m.id !== id)
+    // Apaga de verdade todas as entradas orgânicas, custos e configurações da modelo
+    memoryDb.organicEntries = memoryDb.organicEntries.filter((e) => e.modeloId !== id)
+    delete memoryDb.gatewayConfigs[id]
+    delete memoryDb.fixedCosts[id]
+    await persistNow()
+    return memoryDb.models
+  },
+
   getPaidProfiles(): PaidProfileEntity[] {
     return memoryDb.paidProfiles
   },
@@ -122,6 +150,14 @@ export const storage = {
   savePaidProfiles(profiles: PaidProfileEntity[]): void {
     memoryDb.paidProfiles = profiles
     persist()
+  },
+
+  async deletePaidProfile(id: string): Promise<PaidProfileEntity[]> {
+    memoryDb.paidProfiles = memoryDb.paidProfiles.filter((p) => p.id !== id)
+    // Apaga de verdade todas as entradas de tráfego pago do perfil
+    memoryDb.paidEntries = memoryDb.paidEntries.filter((e) => e.profileId !== id)
+    await persistNow()
+    return memoryDb.paidProfiles
   },
 
   getOrganicEntries(): OrganicDailyEntry[] {

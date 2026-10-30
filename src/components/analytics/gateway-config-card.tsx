@@ -2,6 +2,7 @@ import React from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { formatCurrency, formatPercent } from '@/lib/utils'
 import type { GatewayConfig, GatewayPreset, GatewayFeeType, GatewayBreakdown } from '@/types/finance'
+import { ArrowDownRight } from 'lucide-react'
 
 interface GatewayConfigCardProps {
   config: GatewayConfig
@@ -213,7 +214,11 @@ export const GatewayConfigCard: React.FC<GatewayConfigCardProps> = ({
           </div>
 
           <div>
-            Retenção: <span className="text-rose-500 font-medium">
+            Retenção:{' '}
+            <span className="text-slate-700 dark:text-slate-300 font-medium inline-flex items-center gap-0.5">
+              {config.enabled && breakdown.totalRetido > 0 && (
+                <ArrowDownRight className="w-3 h-3 text-rose-500 shrink-0" />
+              )}
               {config.enabled ? `-${formatCurrency(breakdown.totalRetido)}` : 'R$ 0,00'}
             </span>
             {config.enabled && breakdown.effectivePercentage > 0 && (

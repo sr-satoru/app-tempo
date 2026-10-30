@@ -33,10 +33,7 @@ export const serviceModels = {
 
   deleteModel: async (id: string): Promise<ModeloEntity[]> => {
     await storage.ensureLoaded()
-    const models = storage.getModels()
-    const updated = models.filter((m) => m.id !== id)
-    storage.saveModels(updated)
-    return updated
+    return storage.deleteModel(id)
   },
 
   // Perfis / BMs de Tráfego Pago
@@ -62,9 +59,6 @@ export const serviceModels = {
 
   deletePaidProfile: async (id: string): Promise<PaidProfileEntity[]> => {
     await storage.ensureLoaded()
-    const profiles = storage.getPaidProfiles()
-    const updated = profiles.filter((p) => p.id !== id)
-    storage.savePaidProfiles(updated)
-    return updated
+    return storage.deletePaidProfile(id)
   },
 }
