@@ -110,9 +110,9 @@ export const TablePaid: React.FC<TablePaidProps> = ({
               return (
                 <tr
                   key={day.dateString}
-                  className={`h-7 transition-colors hover:bg-purple-50/70 dark:hover:bg-[#252834] ${
+                  className={`h-7 transition-colors hover:bg-slate-100/80 dark:hover:bg-[#181920] ${
                     isToday
-                      ? 'bg-purple-100/90 dark:bg-[#7C3AED]/25 font-medium'
+                      ? 'bg-slate-200/60 dark:bg-[#1C1E26] font-medium'
                       : isEven
                       ? 'bg-white dark:bg-[#0E0F12]'
                       : 'bg-[#F1F5F9] dark:bg-[#1A1C24]'
@@ -124,7 +124,7 @@ export const TablePaid: React.FC<TablePaidProps> = ({
                       <span
                         className={`text-xs ${
                           isToday
-                            ? 'font-bold text-[#7C3AED] dark:text-[#A78BFA]'
+                            ? 'font-bold text-slate-900 dark:text-white'
                             : 'text-slate-700 dark:text-slate-300'
                         }`}
                       >
@@ -148,7 +148,7 @@ export const TablePaid: React.FC<TablePaidProps> = ({
                       onChange={(e) =>
                         handleFieldChange(day.dateString, 'horasTrabalhadas', e.target.value)
                       }
-                      className="w-full h-6.5 rounded px-2 bg-transparent hover:bg-white dark:hover:bg-[#22242D] focus:bg-white dark:focus:bg-[#22242D] border border-transparent focus:border-[#7C3AED] text-slate-900 dark:text-white text-xs text-right font-mono transition-colors"
+                      className="w-full h-6.5 rounded px-2 bg-transparent hover:bg-white dark:hover:bg-[#22242D] focus:bg-white dark:focus:bg-[#22242D] border border-transparent focus:border-slate-400 dark:focus:border-slate-500 text-slate-900 dark:text-white text-xs text-right font-mono transition-colors"
                     />
                   </td>
 
@@ -164,7 +164,7 @@ export const TablePaid: React.FC<TablePaidProps> = ({
                       onChange={(e) =>
                         handleFieldChange(day.dateString, 'faturamento', e.target.value)
                       }
-                      className="w-full h-6.5 rounded px-2 bg-transparent hover:bg-white dark:hover:bg-[#22242D] focus:bg-white dark:focus:bg-[#22242D] border border-transparent focus:border-[#7C3AED] text-slate-900 dark:text-white text-xs text-right font-mono tabular-nums transition-colors"
+                      className="w-full h-6.5 rounded px-2 bg-transparent hover:bg-white dark:hover:bg-[#22242D] focus:bg-white dark:focus:bg-[#22242D] border border-transparent focus:border-slate-400 dark:focus:border-slate-500 text-slate-900 dark:text-white text-xs text-right font-mono tabular-nums transition-colors"
                     />
                   </td>
 
@@ -180,7 +180,7 @@ export const TablePaid: React.FC<TablePaidProps> = ({
                       onChange={(e) =>
                         handleFieldChange(day.dateString, 'gastoAds', e.target.value)
                       }
-                      className="w-full h-6.5 rounded px-2 bg-transparent hover:bg-white dark:hover:bg-[#22242D] focus:bg-white dark:focus:bg-[#22242D] border border-transparent focus:border-[#7C3AED] text-rose-500 text-xs text-right font-mono tabular-nums transition-colors"
+                      className="w-full h-6.5 rounded px-2 bg-transparent hover:bg-white dark:hover:bg-[#22242D] focus:bg-white dark:focus:bg-[#22242D] border border-transparent focus:border-slate-400 dark:focus:border-slate-500 text-rose-500 text-xs text-right font-mono tabular-nums transition-colors"
                     />
                   </td>
 
@@ -196,7 +196,7 @@ export const TablePaid: React.FC<TablePaidProps> = ({
                       onChange={(e) =>
                         handleFieldChange(day.dateString, 'outrosGastos', e.target.value)
                       }
-                      className="w-full h-6.5 rounded px-2 bg-transparent hover:bg-white dark:hover:bg-[#22242D] focus:bg-white dark:focus:bg-[#22242D] border border-transparent focus:border-[#7C3AED] text-slate-900 dark:text-white text-xs text-right font-mono tabular-nums transition-colors"
+                      className="w-full h-6.5 rounded px-2 bg-transparent hover:bg-white dark:hover:bg-[#22242D] focus:bg-white dark:focus:bg-[#22242D] border border-transparent focus:border-slate-400 dark:focus:border-slate-500 text-slate-900 dark:text-white text-xs text-right font-mono tabular-nums transition-colors"
                     />
                   </td>
 
@@ -209,7 +209,7 @@ export const TablePaid: React.FC<TablePaidProps> = ({
                       onChange={(e) =>
                         handleFieldChange(day.dateString, 'observacoes', e.target.value)
                       }
-                      className="w-full h-6.5 rounded px-2 bg-transparent hover:bg-white dark:hover:bg-[#22242D] border border-transparent focus:border-[#7C3AED] text-slate-500 dark:text-slate-400 text-xs transition-colors"
+                      className="w-full h-6.5 rounded px-2 bg-transparent hover:bg-white dark:hover:bg-[#22242D] border border-transparent focus:border-slate-400 dark:focus:border-slate-500 text-slate-500 dark:text-slate-400 text-xs transition-colors"
                     />
                   </td>
 

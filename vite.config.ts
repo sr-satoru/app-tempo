@@ -63,6 +63,8 @@ function jsonDatabasePlugin(): Plugin {
   return {
     name: 'json-database-plugin',
     configureServer(server) {
+      server.watcher.unwatch(dbDir)
+      server.watcher.unwatch(dbFile)
       server.middlewares.use(handleMiddleware)
     },
     configurePreviewServer(server) {
@@ -73,6 +75,11 @@ function jsonDatabasePlugin(): Plugin {
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    watch: {
+      ignored: ['**/data/**', '**/data/banco.json'],
+    },
+  },
   plugins: [
     react(),
     tailwindcss(),
@@ -84,4 +91,5 @@ export default defineConfig({
     },
   },
 })
+
 

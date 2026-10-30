@@ -66,23 +66,44 @@ export async function ensureLoaded(): Promise<BancoData> {
 // Dispara leitura imediatamente ao carregar o bundle
 if (typeof window !== 'undefined') {
   ensureLoaded()
+
+  window.addEventListener('beforeunload', () => {
+    if (persistTimer) {
+      clearTimeout(persistTimer)
+      try {
+        const blob = new Blob([JSON.stringify(memoryDb)], { type: 'application/json' })
+        navigator.sendBeacon('/api/banco', blob)
+      } catch {
+        // fallback
+      }
+    }
+  })
 }
 
-async function persist(): Promise<void> {
-  try {
-    await fetch('/api/banco', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(memoryDb),
-    })
-  } catch (err) {
-    console.error('[storage] Erro ao gravar em data/banco.json:', err)
+let persistTimer: ReturnType<typeof setTimeout> | null = null
+
+function persist(): void {
+  if (persistTimer) {
+    clearTimeout(persistTimer)
   }
+
+  persistTimer = setTimeout(async () => {
+    try {
+      await fetch('/api/banco', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(memoryDb),
+      })
+    } catch (err) {
+      console.error('[storage] Erro ao gravar em data/banco.json:', err)
+    }
+  }, 350)
 }
 
 export const storage = {
+
   ensureLoaded,
 
   getModels(): ModeloEntity[] {
