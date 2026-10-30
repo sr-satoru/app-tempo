@@ -33,28 +33,73 @@ let memoryDb: BancoData = {
 
 let loadPromise: Promise<BancoData> | null = null
 
+async function loadFromBackend(): Promise<any> {
+  // 1. Desktop via Tauri
+  if (typeof window !== 'undefined' && ('__TAURI_INTERNALS__' in window || '__TAURI__' in window)) {
+    try {
+      const { invoke } = await import('@tauri-apps/api/core')
+      const raw = await invoke<string>('load_banco')
+      return JSON.parse(raw)
+    } catch (tauriErr) {
+      console.warn('[storage] Falha ao carregar via Tauri invoke, tentando fallback:', tauriErr)
+    }
+  }
+
+  // 2. Fallback para Dev Server / Web
+  try {
+    const res = await fetch(`/api/banco?t=${Date.now()}`)
+    if (res.ok) {
+      return await res.json()
+    }
+  } catch (err) {
+    console.warn('[storage] Falha ao carregar de /api/banco:', err)
+  }
+  return null
+}
+
+async function saveToBackend(data: BancoData): Promise<void> {
+  const jsonStr = JSON.stringify(data, null, 2)
+
+  // 1. Desktop via Tauri
+  if (typeof window !== 'undefined' && ('__TAURI_INTERNALS__' in window || '__TAURI__' in window)) {
+    try {
+      const { invoke } = await import('@tauri-apps/api/core')
+      await invoke('save_banco', { data: jsonStr })
+      return
+    } catch (tauriErr) {
+      console.warn('[storage] Falha ao salvar via Tauri invoke, tentando fallback:', tauriErr)
+    }
+  }
+
+  // 2. Fallback para Dev Server / Web
+  await fetch('/api/banco', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: jsonStr,
+  })
+}
+
 export async function ensureLoaded(): Promise<BancoData> {
   if (loadPromise) return loadPromise
 
   loadPromise = (async () => {
     try {
-      const res = await fetch(`/api/banco?t=${Date.now()}`)
-      if (res.ok) {
-        const data = await res.json()
-        if (data && typeof data === 'object') {
-          memoryDb = {
-            models: Array.isArray(data.models) ? data.models : [],
-            paidProfiles: Array.isArray(data.paidProfiles) ? data.paidProfiles : [],
-            organicEntries: Array.isArray(data.organicEntries) ? data.organicEntries : [],
-            paidEntries: Array.isArray(data.paidEntries) ? data.paidEntries : [],
-            gatewayConfigs: data.gatewayConfigs || {},
-            fixedCosts: data.fixedCosts || {},
-          }
-          return memoryDb
+      const data = await loadFromBackend()
+      if (data && typeof data === 'object') {
+        memoryDb = {
+          models: Array.isArray(data.models) ? data.models : [],
+          paidProfiles: Array.isArray(data.paidProfiles) ? data.paidProfiles : [],
+          organicEntries: Array.isArray(data.organicEntries) ? data.organicEntries : [],
+          paidEntries: Array.isArray(data.paidEntries) ? data.paidEntries : [],
+          gatewayConfigs: data.gatewayConfigs || {},
+          fixedCosts: data.fixedCosts || {},
         }
+        return memoryDb
       }
     } catch (err) {
-      console.warn('[storage] Falha ao carregar de /api/banco, mantendo dados em memória:', err)
+      console.warn('[storage] Falha ao carregar dados, mantendo estado em memória:', err)
     }
     return memoryDb
   })()
@@ -70,8 +115,7 @@ if (typeof window !== 'undefined') {
     if (persistTimer) {
       clearTimeout(persistTimer)
       try {
-        const blob = new Blob([JSON.stringify(memoryDb)], { type: 'application/json' })
-        navigator.sendBeacon('/api/banco', blob)
+        saveToBackend(memoryDb)
       } catch {
         // fallback
       }
@@ -88,15 +132,9 @@ function persist(): void {
 
   persistTimer = setTimeout(async () => {
     try {
-      await fetch('/api/banco', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(memoryDb),
-      })
+      await saveToBackend(memoryDb)
     } catch (err) {
-      console.error('[storage] Erro ao gravar em data/banco.json:', err)
+      console.error('[storage] Erro ao gravar dados:', err)
     }
   }, 350)
 }
@@ -107,15 +145,9 @@ async function persistNow(): Promise<void> {
     persistTimer = null
   }
   try {
-    await fetch('/api/banco', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(memoryDb),
-    })
+    await saveToBackend(memoryDb)
   } catch (err) {
-    console.error('[storage] Erro ao gravar em data/banco.json:', err)
+    console.error('[storage] Erro ao gravar dados:', err)
   }
 }
 
