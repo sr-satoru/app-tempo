@@ -8,6 +8,7 @@ interface GatewayConfigCardProps {
   config: GatewayConfig
   breakdown: GatewayBreakdown
   faturamentoBruto: number
+  readOnly?: boolean
   onChange: (updated: GatewayConfig) => void
 }
 
@@ -32,9 +33,11 @@ export const GatewayConfigCard: React.FC<GatewayConfigCardProps> = ({
   config,
   breakdown,
   faturamentoBruto,
+  readOnly = false,
   onChange,
 }) => {
   const handleSelectPreset = (presetId: string) => {
+    if (readOnly) return
     const found = PRESET_OPTIONS.find((p) => p.id === presetId)
     if (!found) return
     onChange({
@@ -49,6 +52,7 @@ export const GatewayConfigCard: React.FC<GatewayConfigCardProps> = ({
   }
 
   const handleFeeTypeChange = (feeType: GatewayFeeType) => {
+    if (readOnly) return
     onChange({
       ...config,
       feeType,
@@ -57,6 +61,7 @@ export const GatewayConfigCard: React.FC<GatewayConfigCardProps> = ({
   }
 
   const handleFieldChange = (field: keyof GatewayConfig, val: string | number | boolean) => {
+    if (readOnly) return
     onChange({
       ...config,
       [field]: typeof config[field] === 'number' ? Number(val) || 0 : val,
@@ -80,11 +85,15 @@ export const GatewayConfigCard: React.FC<GatewayConfigCardProps> = ({
 
           <button
             type="button"
+            disabled={readOnly}
+            title={readOnly ? 'Crie ou selecione uma modelo para configurar o checkout' : undefined}
             onClick={() => handleFieldChange('enabled', !config.enabled)}
             className={`px-2 py-1 rounded text-xs font-mono transition-colors ${
-              config.enabled
-                ? 'bg-slate-100 dark:bg-[#1E2025] text-emerald-600 dark:text-emerald-400'
-                : 'bg-slate-100 dark:bg-[#1E2025] text-slate-400'
+              readOnly
+                ? 'opacity-40 cursor-not-allowed select-none bg-slate-100 dark:bg-[#1E2025] text-slate-400'
+                : config.enabled
+                ? 'bg-slate-100 dark:bg-[#1E2025] text-emerald-600 dark:text-emerald-400 cursor-pointer'
+                : 'bg-slate-100 dark:bg-[#1E2025] text-slate-400 cursor-pointer'
             }`}
           >
             {config.enabled ? 'Ativo' : 'Desativado'}
@@ -99,8 +108,12 @@ export const GatewayConfigCard: React.FC<GatewayConfigCardProps> = ({
             </label>
             <select
               value={config.preset}
+              disabled={readOnly}
+              title={readOnly ? 'Crie ou selecione uma modelo para configurar o checkout' : undefined}
               onChange={(e) => handleSelectPreset(e.target.value)}
-              className="w-full h-7 rounded px-2 bg-slate-50 dark:bg-[#16171F] border border-slate-200 dark:border-[#1E2025] text-xs text-slate-800 dark:text-slate-200"
+              className={`w-full h-7 rounded px-2 bg-slate-50 dark:bg-[#16171F] border border-slate-200 dark:border-[#1E2025] text-xs text-slate-800 dark:text-slate-200 ${
+                readOnly ? 'opacity-40 cursor-not-allowed select-none' : ''
+              }`}
             >
               {PRESET_OPTIONS.map((p) => (
                 <option key={p.id} value={p.id} className="bg-white dark:bg-[#16171F] text-slate-800 dark:text-slate-200">
@@ -114,7 +127,9 @@ export const GatewayConfigCard: React.FC<GatewayConfigCardProps> = ({
             <label className="text-[11px] text-slate-500 dark:text-slate-400 block mb-1">
               Formato de Cobrança
             </label>
-            <div className="flex h-7 rounded bg-slate-50 dark:bg-[#16171F] border border-slate-200 dark:border-[#1E2025] p-0.5 text-[11px]">
+            <div className={`flex h-7 rounded bg-slate-50 dark:bg-[#16171F] border border-slate-200 dark:border-[#1E2025] p-0.5 text-[11px] ${
+              readOnly ? 'opacity-40 select-none' : ''
+            }`}>
               {[
                 { id: 'mixed', label: 'Misto (% + Fixa)' },
                 { id: 'percentage', label: 'Apenas %' },
@@ -123,11 +138,14 @@ export const GatewayConfigCard: React.FC<GatewayConfigCardProps> = ({
                 <button
                   key={t.id}
                   type="button"
+                  disabled={readOnly}
                   onClick={() => handleFeeTypeChange(t.id as GatewayFeeType)}
                   className={`flex-1 rounded transition-colors ${
-                    config.feeType === t.id
-                      ? 'bg-white dark:bg-[#22242F] text-slate-900 dark:text-slate-100 font-medium shadow-xs'
-                      : 'text-slate-400 hover:text-slate-200'
+                    readOnly
+                      ? 'cursor-not-allowed text-slate-400'
+                      : config.feeType === t.id
+                      ? 'bg-white dark:bg-[#22242F] text-slate-900 dark:text-slate-100 font-medium shadow-xs cursor-pointer'
+                      : 'text-slate-400 hover:text-slate-200 cursor-pointer'
                   }`}
                 >
                   {t.label}
@@ -149,9 +167,14 @@ export const GatewayConfigCard: React.FC<GatewayConfigCardProps> = ({
                   type="number"
                   step="0.01"
                   min="0"
+                  disabled={readOnly}
+                  readOnly={readOnly}
+                  title={readOnly ? 'Crie ou selecione uma modelo para configurar o checkout' : undefined}
                   value={config.percentageFee || ''}
                   onChange={(e) => handleFieldChange('percentageFee', e.target.value)}
-                  className="w-full h-7 rounded px-2 pr-5 bg-white dark:bg-[#101115] border border-slate-200 dark:border-[#22242E] text-xs font-mono text-slate-800 dark:text-slate-200"
+                  className={`w-full h-7 rounded px-2 pr-5 bg-white dark:bg-[#101115] border border-slate-200 dark:border-[#22242E] text-xs font-mono text-slate-800 dark:text-slate-200 ${
+                    readOnly ? 'opacity-40 cursor-not-allowed select-none' : ''
+                  }`}
                   placeholder="0.00"
                 />
                 <span className="absolute right-2 top-1.5 text-[10px] text-slate-400 font-mono">%</span>
@@ -168,9 +191,14 @@ export const GatewayConfigCard: React.FC<GatewayConfigCardProps> = ({
                 type="number"
                 step="0.01"
                 min="0"
+                disabled={readOnly}
+                readOnly={readOnly}
+                title={readOnly ? 'Crie ou selecione uma modelo para configurar o checkout' : undefined}
                 value={config.fixedFeePerTransaction || ''}
                 onChange={(e) => handleFieldChange('fixedFeePerTransaction', e.target.value)}
-                className="w-full h-7 rounded px-2 bg-white dark:bg-[#101115] border border-slate-200 dark:border-[#22242E] text-xs font-mono text-slate-800 dark:text-slate-200"
+                className={`w-full h-7 rounded px-2 bg-white dark:bg-[#101115] border border-slate-200 dark:border-[#22242E] text-xs font-mono text-slate-800 dark:text-slate-200 ${
+                  readOnly ? 'opacity-40 cursor-not-allowed select-none' : ''
+                }`}
                 placeholder="0.00"
               />
             </div>
@@ -184,9 +212,14 @@ export const GatewayConfigCard: React.FC<GatewayConfigCardProps> = ({
               type="number"
               step="0.01"
               min="0"
+              disabled={readOnly}
+              readOnly={readOnly}
+              title={readOnly ? 'Crie ou selecione uma modelo para configurar o checkout' : undefined}
               value={config.withdrawalOrMonthlyFee || ''}
               onChange={(e) => handleFieldChange('withdrawalOrMonthlyFee', e.target.value)}
-              className="w-full h-7 rounded px-2 bg-white dark:bg-[#101115] border border-slate-200 dark:border-[#22242E] text-xs font-mono text-slate-800 dark:text-slate-200"
+              className={`w-full h-7 rounded px-2 bg-white dark:bg-[#101115] border border-slate-200 dark:border-[#22242E] text-xs font-mono text-slate-800 dark:text-slate-200 ${
+                readOnly ? 'opacity-40 cursor-not-allowed select-none' : ''
+              }`}
               placeholder="0.00"
             />
           </div>

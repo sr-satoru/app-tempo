@@ -41,8 +41,11 @@ export const FixedCostsManager: React.FC<FixedCostsManagerProps> = ({
   const [amortizarMeses, setAmortizarMeses] = useState('1')
   const [isAddingOpen, setIsAddingOpen] = useState(false)
 
+  const isReadOnly = !modeloId || modeloId === 'all'
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    if (isReadOnly) return
     const numValor = parseFloat(valor)
     if (!nome.trim() || isNaN(numValor) || numValor <= 0) return
 
@@ -79,8 +82,15 @@ export const FixedCostsManager: React.FC<FixedCostsManagerProps> = ({
             type="button"
             size="sm"
             variant="outline"
-            onClick={() => setIsAddingOpen(!isAddingOpen)}
-            className="h-7 px-2.5 text-xs border-slate-200 dark:border-[#2A2C3A] text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1A1C24]"
+            disabled={isReadOnly}
+            title={isReadOnly ? 'Crie ou selecione uma modelo para adicionar custos' : undefined}
+            onClick={() => {
+              if (isReadOnly) return
+              setIsAddingOpen(!isAddingOpen)
+            }}
+            className={`h-7 px-2.5 text-xs border-slate-200 dark:border-[#2A2C3A] text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1A1C24] ${
+              isReadOnly ? 'opacity-40 cursor-not-allowed select-none' : ''
+            }`}
           >
             <Plus className="w-3.5 h-3.5 mr-1" />
             {isAddingOpen ? 'Fechar' : 'Adicionar Custo'}
@@ -199,7 +209,9 @@ export const FixedCostsManager: React.FC<FixedCostsManagerProps> = ({
         {/* Lista Minimalista de Custos */}
         {items.length === 0 ? (
           <div className="py-4 text-center text-xs text-slate-400">
-            Nenhum custo cadastrado para esta modelo.
+            {isReadOnly
+              ? 'Nenhuma modelo selecionada. Crie uma modelo acima para gerenciar custos de setup e mensais.'
+              : 'Nenhum custo cadastrado para esta modelo.'}
           </div>
         ) : (
           <div className="divide-y divide-slate-100 dark:divide-[#181920]">
@@ -218,8 +230,9 @@ export const FixedCostsManager: React.FC<FixedCostsManagerProps> = ({
                     <input
                       type="checkbox"
                       checked={item.ativo}
+                      disabled={isReadOnly}
                       onChange={() => onToggleItem(item.id)}
-                      className="w-3.5 h-3.5 rounded text-slate-700 focus:ring-0 cursor-pointer"
+                      className="w-3.5 h-3.5 rounded text-slate-700 focus:ring-0 cursor-pointer disabled:cursor-not-allowed"
                     />
 
                     <span className="font-medium text-slate-800 dark:text-slate-200 truncate">
@@ -253,9 +266,10 @@ export const FixedCostsManager: React.FC<FixedCostsManagerProps> = ({
 
                     <button
                       type="button"
+                      disabled={isReadOnly}
                       onClick={() => onDeleteItem(item.id)}
-                      className="p-1 text-slate-400 hover:text-rose-500 transition-colors"
-                      title="Excluir"
+                      className="p-1 text-slate-400 hover:text-rose-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      title={isReadOnly ? undefined : 'Excluir'}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>

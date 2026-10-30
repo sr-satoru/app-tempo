@@ -50,12 +50,16 @@ export const OrganicFinancialOverview: React.FC<OrganicFinancialOverviewProps> =
     }
   }, [selectedModelId])
 
+  const isReadOnly = !selectedModelId || selectedModelId === 'all'
+
   const handleUpdateGateway = (updated: GatewayConfig) => {
+    if (isReadOnly) return
     setGatewayConfig(updated)
     api.finance.saveGatewayConfig(selectedModelId, updated)
   }
 
   const handleAddCost = (item: Omit<FixedCostItem, 'id' | 'criadoEm'>) => {
+    if (isReadOnly) return
     const newItem: FixedCostItem = {
       ...item,
       id: `cost_${Date.now()}`,
@@ -67,12 +71,14 @@ export const OrganicFinancialOverview: React.FC<OrganicFinancialOverviewProps> =
   }
 
   const handleToggleCost = (id: string) => {
+    if (isReadOnly) return
     const updated = fixedCosts.map((c) => (c.id === id ? { ...c, ativo: !c.ativo } : c))
     setFixedCosts(updated)
     api.finance.saveFixedCosts(selectedModelId, updated)
   }
 
   const handleDeleteCost = (id: string) => {
+    if (isReadOnly) return
     const updated = fixedCosts.filter((c) => c.id !== id)
     setFixedCosts(updated)
     api.finance.saveFixedCosts(selectedModelId, updated)
@@ -216,6 +222,7 @@ export const OrganicFinancialOverview: React.FC<OrganicFinancialOverviewProps> =
           config={gatewayConfig}
           breakdown={financial.gatewayBreakdown}
           faturamentoBruto={financial.faturamentoBruto}
+          readOnly={isReadOnly}
           onChange={handleUpdateGateway}
         />
 

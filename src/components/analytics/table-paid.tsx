@@ -2,6 +2,8 @@ import React from 'react'
 import { CalendarDay } from '@/domain/calendar'
 import { calculatePaidDaily } from '@/domain/calculations'
 import { formatCurrency, formatPercent } from '@/lib/utils'
+import { toast } from '@/components/ui/notification'
+import { Lock } from 'lucide-react'
 import type { PaidDailyEntry } from '@/types/analytics'
 
 interface TablePaidProps {
@@ -18,6 +20,18 @@ export const TablePaid: React.FC<TablePaidProps> = ({
   onSaveEntry,
 }) => {
   const todayStr = new Date().toISOString().split('T')[0]
+  const isReadOnly = !selectedProfileId || selectedProfileId === 'all'
+  const tooltipMessage = !selectedProfileId
+    ? 'Crie primeiro um perfil (BM) no botão "+ Novo Perfil" acima para começar a lançar os dados.'
+    : selectedProfileId === 'all'
+    ? 'Selecione um perfil/BM individual acima para editar os lançamentos diários.'
+    : ''
+
+  const handleTableClickCapture = () => {
+    if (isReadOnly) {
+      toast.warning(tooltipMessage, { id: 'paid-table-locked', duration: 3500 })
+    }
+  }
 
   const entriesMap = React.useMemo(() => {
     const map = new Map<string, PaidDailyEntry>()
@@ -30,6 +44,11 @@ export const TablePaid: React.FC<TablePaidProps> = ({
     field: keyof PaidDailyEntry,
     value: string | number
   ) => {
+    if (isReadOnly) {
+      toast.warning(tooltipMessage, { id: 'paid-table-locked', duration: 3500 })
+      return
+    }
+
     const existing = entriesMap.get(dateString) || {
       id: `${dateString}_${selectedProfileId}`,
       data: dateString,
@@ -56,9 +75,23 @@ export const TablePaid: React.FC<TablePaidProps> = ({
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-[#1E2025] bg-white dark:bg-[#121316] shadow-sm overflow-hidden">
+    <div
+      className="rounded-xl border border-slate-200 dark:border-[#1E2025] bg-white dark:bg-[#121316] shadow-sm overflow-hidden"
+      onClickCapture={handleTableClickCapture}
+    >
+      {isReadOnly && (
+        <div className="flex items-center justify-between gap-3 px-3.5 py-2 bg-amber-500/10 dark:bg-amber-500/15 border-b border-amber-500/25 text-amber-700 dark:text-amber-300 text-xs font-medium">
+          <div className="flex items-center gap-2">
+            <Lock className="w-4 h-4 text-amber-500 shrink-0" />
+            <span>{tooltipMessage}</span>
+          </div>
+          <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded bg-amber-500/20 text-amber-800 dark:text-amber-200 shrink-0 select-none">
+            Modo Leitura
+          </span>
+        </div>
+      )}
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-left text-xs">
+        <table className={`w-full border-collapse text-left text-xs ${isReadOnly ? 'cursor-not-allowed select-none' : ''}`}>
           <thead>
             <tr className="border-b border-slate-200 dark:border-[#1E2025] bg-slate-50/80 dark:bg-[#16171D] text-slate-500 dark:text-slate-400 font-medium select-none text-[11px]">
               <th className="py-1.5 px-2 w-16 text-center">Data</th>
@@ -137,79 +170,114 @@ export const TablePaid: React.FC<TablePaidProps> = ({
                   </td>
 
                   {/* Horas - sem scroll acidental */}
-                  <td className="p-0.5 px-1">
+                  <td className="p-0.5 px-1" title={isReadOnly ? tooltipMessage : undefined}>
                     <input
                       type="number"
                       step="0.5"
                       min="0"
                       placeholder="0.0h"
+                      disabled={isReadOnly}
+                      readOnly={isReadOnly}
+                      title={isReadOnly ? tooltipMessage : undefined}
                       value={entry.horasTrabalhadas || ''}
                       onWheel={handlePreventWheelChange}
                       onChange={(e) =>
                         handleFieldChange(day.dateString, 'horasTrabalhadas', e.target.value)
                       }
-                      className="w-full h-6.5 rounded px-2 bg-transparent hover:bg-white dark:hover:bg-[#22242D] focus:bg-white dark:focus:bg-[#22242D] border border-transparent focus:border-slate-400 dark:focus:border-slate-500 text-slate-900 dark:text-white text-xs text-right font-mono transition-colors"
+                      className={`w-full h-6.5 rounded px-2 bg-transparent border border-transparent text-slate-900 dark:text-white text-xs text-right font-mono transition-colors ${
+                        isReadOnly
+                          ? 'opacity-40 cursor-not-allowed select-none'
+                          : 'hover:bg-white dark:hover:bg-[#22242D] focus:bg-white dark:focus:bg-[#22242D] focus:border-slate-400 dark:focus:border-slate-500'
+                      }`}
                     />
                   </td>
 
                   {/* Faturamento - sem scroll acidental */}
-                  <td className="p-0.5 px-1">
+                  <td className="p-0.5 px-1" title={isReadOnly ? tooltipMessage : undefined}>
                     <input
                       type="number"
                       step="0.01"
                       min="0"
                       placeholder="R$ 0,00"
+                      disabled={isReadOnly}
+                      readOnly={isReadOnly}
+                      title={isReadOnly ? tooltipMessage : undefined}
                       value={entry.faturamento || ''}
                       onWheel={handlePreventWheelChange}
                       onChange={(e) =>
                         handleFieldChange(day.dateString, 'faturamento', e.target.value)
                       }
-                      className="w-full h-6.5 rounded px-2 bg-transparent hover:bg-white dark:hover:bg-[#22242D] focus:bg-white dark:focus:bg-[#22242D] border border-transparent focus:border-slate-400 dark:focus:border-slate-500 text-slate-900 dark:text-white text-xs text-right font-mono tabular-nums transition-colors"
+                      className={`w-full h-6.5 rounded px-2 bg-transparent border border-transparent text-slate-900 dark:text-white text-xs text-right font-mono tabular-nums transition-colors ${
+                        isReadOnly
+                          ? 'opacity-40 cursor-not-allowed select-none'
+                          : 'hover:bg-white dark:hover:bg-[#22242D] focus:bg-white dark:focus:bg-[#22242D] focus:border-slate-400 dark:focus:border-slate-500'
+                      }`}
                     />
                   </td>
 
                   {/* Gasto em Ads - sem scroll acidental */}
-                  <td className="p-0.5 px-1">
+                  <td className="p-0.5 px-1" title={isReadOnly ? tooltipMessage : undefined}>
                     <input
                       type="number"
                       step="0.01"
                       min="0"
                       placeholder="R$ 0,00"
+                      disabled={isReadOnly}
+                      readOnly={isReadOnly}
+                      title={isReadOnly ? tooltipMessage : undefined}
                       value={entry.gastoAds || ''}
                       onWheel={handlePreventWheelChange}
                       onChange={(e) =>
                         handleFieldChange(day.dateString, 'gastoAds', e.target.value)
                       }
-                      className="w-full h-6.5 rounded px-2 bg-transparent hover:bg-white dark:hover:bg-[#22242D] focus:bg-white dark:focus:bg-[#22242D] border border-transparent focus:border-slate-400 dark:focus:border-slate-500 text-rose-500 text-xs text-right font-mono tabular-nums transition-colors"
+                      className={`w-full h-6.5 rounded px-2 bg-transparent border border-transparent text-rose-500 text-xs text-right font-mono tabular-nums transition-colors ${
+                        isReadOnly
+                          ? 'opacity-40 cursor-not-allowed select-none'
+                          : 'hover:bg-white dark:hover:bg-[#22242D] focus:bg-white dark:focus:bg-[#22242D] focus:border-slate-400 dark:focus:border-slate-500'
+                      }`}
                     />
                   </td>
 
                   {/* Outros Custos - sem scroll acidental */}
-                  <td className="p-0.5 px-1">
+                  <td className="p-0.5 px-1" title={isReadOnly ? tooltipMessage : undefined}>
                     <input
                       type="number"
                       step="0.01"
                       min="0"
                       placeholder="R$ 0,00"
+                      disabled={isReadOnly}
+                      readOnly={isReadOnly}
+                      title={isReadOnly ? tooltipMessage : undefined}
                       value={entry.outrosGastos || ''}
                       onWheel={handlePreventWheelChange}
                       onChange={(e) =>
                         handleFieldChange(day.dateString, 'outrosGastos', e.target.value)
                       }
-                      className="w-full h-6.5 rounded px-2 bg-transparent hover:bg-white dark:hover:bg-[#22242D] focus:bg-white dark:focus:bg-[#22242D] border border-transparent focus:border-slate-400 dark:focus:border-slate-500 text-slate-900 dark:text-white text-xs text-right font-mono tabular-nums transition-colors"
+                      className={`w-full h-6.5 rounded px-2 bg-transparent border border-transparent text-slate-900 dark:text-white text-xs text-right font-mono tabular-nums transition-colors ${
+                        isReadOnly
+                          ? 'opacity-40 cursor-not-allowed select-none'
+                          : 'hover:bg-white dark:hover:bg-[#22242D] focus:border-slate-400 dark:focus:border-slate-500'
+                      }`}
                     />
                   </td>
 
                   {/* Notas */}
-                  <td className="p-0.5 px-1">
+                  <td className="p-0.5 px-1" title={isReadOnly ? tooltipMessage : undefined}>
                     <input
                       type="text"
                       placeholder="Campanha, BM..."
+                      disabled={isReadOnly}
+                      readOnly={isReadOnly}
+                      title={isReadOnly ? tooltipMessage : undefined}
                       value={entry.observacoes || ''}
                       onChange={(e) =>
                         handleFieldChange(day.dateString, 'observacoes', e.target.value)
                       }
-                      className="w-full h-6.5 rounded px-2 bg-transparent hover:bg-white dark:hover:bg-[#22242D] border border-transparent focus:border-slate-400 dark:focus:border-slate-500 text-slate-500 dark:text-slate-400 text-xs transition-colors"
+                      className={`w-full h-6.5 rounded px-2 bg-transparent border border-transparent text-slate-500 dark:text-slate-400 text-xs transition-colors ${
+                        isReadOnly
+                          ? 'opacity-40 cursor-not-allowed select-none'
+                          : 'hover:bg-white dark:hover:bg-[#22242D] focus:border-slate-400 dark:focus:border-slate-500'
+                      }`}
                     />
                   </td>
 
