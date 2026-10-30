@@ -312,15 +312,13 @@ export default function DashboardPage() {
           </Pill>
         </div>
 
-        <div className="w-px h-5 bg-slate-200 dark:bg-[#22242D]" />
-
-        {/* Entity select */}
-        <div className="flex items-center gap-2">
+        {/* Entity select — posicionado à direita substituindo os botões redundantes */}
+        <div className="ml-auto flex items-center gap-2">
           <span className="text-[11px] font-medium text-slate-400 select-none">Filtrar por:</span>
           <select
             value={selectedEntityId}
             onChange={(e) => setSelectedEntityId(e.target.value)}
-            className="h-8 pl-2.5 pr-7 rounded-lg border border-slate-200 dark:border-[#22242D] bg-slate-50 dark:bg-[#16171D] text-[11px] font-medium text-slate-800 dark:text-white cursor-pointer focus:outline-none focus:border-indigo-500 appearance-none"
+            className="h-8 pl-2.5 pr-7 rounded-lg border border-slate-200 dark:border-[#22242D] bg-slate-50 dark:bg-[#16171D] text-[11px] font-medium text-slate-800 dark:text-white cursor-pointer focus:outline-none focus:border-slate-400 appearance-none"
             style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%236B7280\' stroke-width=\'2\'%3E%3Cpath d=\'M6 9l6 6 6-6\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'calc(100% - 8px) center' }}
           >
             <option value="all">
@@ -347,24 +345,6 @@ export default function DashboardPage() {
               × Limpar
             </button>
           )}
-        </div>
-
-        {/* Quick nav */}
-        <div className="ml-auto flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => navigate('/organico')}
-            className="h-8 px-3 rounded-lg border border-slate-200 dark:border-[#22242D] bg-white dark:bg-[#16171D] text-[11px] font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1E2028] transition-colors cursor-pointer"
-          >
-            Orgânico
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate('/pago')}
-            className="h-8 px-3 rounded-lg bg-indigo-600 text-[11px] font-medium text-white hover:bg-indigo-700 transition-colors cursor-pointer"
-          >
-            Tráfego Pago
-          </button>
         </div>
       </div>
 
