@@ -313,17 +313,25 @@ export default function DashboardPage() {
             className="h-8 pl-2.5 pr-7 rounded-lg border border-slate-200 dark:border-[#22242D] bg-slate-50 dark:bg-[#16171D] text-[11px] font-medium text-slate-800 dark:text-white cursor-pointer focus:outline-none focus:border-slate-400 appearance-none"
             style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%236B7280\' stroke-width=\'2\'%3E%3Cpath d=\'M6 9l6 6 6-6\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'calc(100% - 8px) center' }}
           >
-            <option value="all">
+            <option value="all" className="bg-white dark:bg-[#16171D] text-slate-800 dark:text-white">
               {selectedOperation === 'organic' ? 'Todas as Modelos' : selectedOperation === 'paid' ? 'Todas as BMs' : 'Todos'}
             </option>
             {(selectedOperation === 'all' || selectedOperation === 'organic') && (
-              <optgroup label="Modelos OFM">
-                {models.map((m) => <option key={m.id} value={m.id}>{m.nome}</option>)}
+              <optgroup label="Modelos OFM" className="bg-white dark:bg-[#16171D] text-slate-800 dark:text-white">
+                {models.map((m) => (
+                  <option key={m.id} value={m.id} className="bg-white dark:bg-[#16171D] text-slate-800 dark:text-white">
+                    {m.nome}
+                  </option>
+                ))}
               </optgroup>
             )}
             {(selectedOperation === 'all' || selectedOperation === 'paid') && (
-              <optgroup label="BMs / Perfis">
-                {paidProfiles.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}
+              <optgroup label="BMs / Perfis" className="bg-white dark:bg-[#16171D] text-slate-800 dark:text-white">
+                {paidProfiles.map((p) => (
+                  <option key={p.id} value={p.id} className="bg-white dark:bg-[#16171D] text-slate-800 dark:text-white">
+                    {p.nome}
+                  </option>
+                ))}
               </optgroup>
             )}
           </select>

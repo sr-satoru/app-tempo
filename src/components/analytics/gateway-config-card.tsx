@@ -103,7 +103,7 @@ export const GatewayConfigCard: React.FC<GatewayConfigCardProps> = ({
               className="w-full h-7 rounded px-2 bg-slate-50 dark:bg-[#16171F] border border-slate-200 dark:border-[#1E2025] text-xs text-slate-800 dark:text-slate-200"
             >
               {PRESET_OPTIONS.map((p) => (
-                <option key={p.id} value={p.id}>
+                <option key={p.id} value={p.id} className="bg-white dark:bg-[#16171F] text-slate-800 dark:text-slate-200">
                   {p.name}
                 </option>
               ))}

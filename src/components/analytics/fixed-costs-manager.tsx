@@ -117,11 +117,11 @@ export const FixedCostsManager: React.FC<FixedCostsManagerProps> = ({
                   onChange={(e) => setCategoria(e.target.value as CostCategory)}
                   className="w-full h-7 rounded px-1.5 bg-white dark:bg-[#101115] border border-slate-200 dark:border-[#22242E] text-xs text-slate-900 dark:text-slate-100"
                 >
-                  <option value="equipamento">Equipamento</option>
-                  <option value="conteudo">Conteúdo</option>
-                  <option value="contingencia">Contingência</option>
-                  <option value="software">Software</option>
-                  <option value="outros">Outros</option>
+                  <option value="equipamento" className="bg-white dark:bg-[#101115] text-slate-900 dark:text-slate-100">Equipamento</option>
+                  <option value="conteudo" className="bg-white dark:bg-[#101115] text-slate-900 dark:text-slate-100">Conteúdo</option>
+                  <option value="contingencia" className="bg-white dark:bg-[#101115] text-slate-900 dark:text-slate-100">Contingência</option>
+                  <option value="software" className="bg-white dark:bg-[#101115] text-slate-900 dark:text-slate-100">Software</option>
+                  <option value="outros" className="bg-white dark:bg-[#101115] text-slate-900 dark:text-slate-100">Outros</option>
                 </select>
               </div>
 
@@ -134,8 +134,8 @@ export const FixedCostsManager: React.FC<FixedCostsManagerProps> = ({
                   onChange={(e) => setTipo(e.target.value as CostType)}
                   className="w-full h-7 rounded px-1.5 bg-white dark:bg-[#101115] border border-slate-200 dark:border-[#22242E] text-xs text-slate-900 dark:text-slate-100"
                 >
-                  <option value="inicial">Inicial (Setup)</option>
-                  <option value="mensal">Fixo Mensal</option>
+                  <option value="inicial" className="bg-white dark:bg-[#101115] text-slate-900 dark:text-slate-100">Inicial (Setup)</option>
+                  <option value="mensal" className="bg-white dark:bg-[#101115] text-slate-900 dark:text-slate-100">Fixo Mensal</option>
                 </select>
               </div>
             </div>
@@ -167,11 +167,11 @@ export const FixedCostsManager: React.FC<FixedCostsManagerProps> = ({
                     onChange={(e) => setAmortizarMeses(e.target.value)}
                     className="w-full h-7 rounded px-1.5 bg-white dark:bg-[#101115] border border-slate-200 dark:border-[#22242E] text-xs text-slate-900 dark:text-slate-100"
                   >
-                    <option value="1">100% no mês atual (1x)</option>
-                    <option value="2">2 meses (2x)</option>
-                    <option value="3">3 meses (3x)</option>
-                    <option value="6">6 meses (6x)</option>
-                    <option value="12">12 meses (12x)</option>
+                    <option value="1" className="bg-white dark:bg-[#101115] text-slate-900 dark:text-slate-100">100% no mês atual (1x)</option>
+                    <option value="2" className="bg-white dark:bg-[#101115] text-slate-900 dark:text-slate-100">2 meses (2x)</option>
+                    <option value="3" className="bg-white dark:bg-[#101115] text-slate-900 dark:text-slate-100">3 meses (3x)</option>
+                    <option value="6" className="bg-white dark:bg-[#101115] text-slate-900 dark:text-slate-100">6 meses (6x)</option>
+                    <option value="12" className="bg-white dark:bg-[#101115] text-slate-900 dark:text-slate-100">12 meses (12x)</option>
                   </select>
                 </div>
               )}

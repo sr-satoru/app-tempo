@@ -32,7 +32,7 @@ export const HeaderCalendar: React.FC<HeaderCalendarProps> = ({ onOpenExport }) 
             className="h-9 px-3 rounded-lg border border-slate-200 dark:border-[#1E2025] bg-slate-50 dark:bg-[#121316] text-xs font-semibold text-slate-900 dark:text-white cursor-pointer focus:outline-none focus:border-[#7C3AED]"
           >
             {MONTH_NAMES.map((name, idx) => (
-              <option key={name} value={idx} className="bg-white dark:bg-[#121316]">
+              <option key={name} value={idx} className="bg-white dark:bg-[#121316] text-slate-900 dark:text-white">
                 {name}
               </option>
             ))}
@@ -45,7 +45,7 @@ export const HeaderCalendar: React.FC<HeaderCalendarProps> = ({ onOpenExport }) 
             className="h-9 px-3 rounded-lg border border-slate-200 dark:border-[#1E2025] bg-slate-50 dark:bg-[#121316] text-xs font-semibold text-slate-900 dark:text-white cursor-pointer focus:outline-none focus:border-[#7C3AED]"
           >
             {years.map((y) => (
-              <option key={y} value={y} className="bg-white dark:bg-[#121316]">
+              <option key={y} value={y} className="bg-white dark:bg-[#121316] text-slate-900 dark:text-white">
                 {y}
               </option>
             ))}

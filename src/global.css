@@ -4,6 +4,7 @@
 
 @layer base {
   :root {
+    color-scheme: light;
     --bg-page: #f8fafc;
     --bg-card: #ffffff;
     --bg-elevated: #f1f5f9;
@@ -16,7 +17,9 @@
     --accent-rose: #f43f5e;
   }
 
+  html.dark,
   .dark {
+    color-scheme: dark;
     --bg-page: #0b0c0e;
     --bg-card: #121316;
     --bg-elevated: #18191e;
@@ -35,6 +38,27 @@
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
+  }
+
+  /* Padronização visual para Selects e Dropdowns nativos no app compilado */
+  select {
+    color-scheme: light;
+  }
+
+  .dark select {
+    color-scheme: dark;
+  }
+
+  select option,
+  select optgroup {
+    background-color: #ffffff;
+    color: #0f172a;
+  }
+
+  .dark select option,
+  .dark select optgroup {
+    background-color: #121316;
+    color: #f8fafc;
   }
 }
 

@@ -183,7 +183,7 @@ export const TableOrganic: React.FC<TableOrganicProps> = ({
                       className="w-full h-6.5 rounded px-1.5 text-xs bg-transparent hover:bg-white dark:hover:bg-[#22242D] border border-transparent focus:border-slate-400 dark:focus:border-slate-500 text-slate-700 dark:text-slate-300 cursor-pointer transition-colors"
                     >
                       {CHANNELS.map((ch) => (
-                        <option key={ch} value={ch} className="bg-white dark:bg-[#16171E]">
+                        <option key={ch} value={ch} className="bg-white dark:bg-[#16171E] text-slate-800 dark:text-slate-200">
                           {ch}
                         </option>
                       ))}
